@@ -10,3 +10,4 @@ E:\program\DrapPanel\DrapPanel\bin\Release\DrapPanel.exe
 E:\program\DrapPanel\DrapPanel\bin\Release\DrapPanel.pdb
 E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.exe
 E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.pdb
+E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.Form4.resources
