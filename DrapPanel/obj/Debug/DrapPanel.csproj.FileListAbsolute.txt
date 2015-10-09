@@ -11,3 +11,15 @@ F:\Part-time\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Form2.resources
 F:\Part-time\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Form3.resources
 F:\Part-time\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Form2_back.resources
 F:\ASJ\Part-time\DrapPanel\DrapPanel\obj\Debug\DrapPanel.exe
+E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.exe
+E:\program\DrapPanel\DrapPanel\bin\Debug\DrapPanel.exe
+E:\program\DrapPanel\DrapPanel\bin\Debug\DrapPanel.pdb
+E:\program\DrapPanel\DrapPanel\obj\Debug\ResolveAssemblyReference.cache
+E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Form1.resources
+E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Form2.resources
+E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Form3.resources
+E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.LineControl.resources
+E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Properties.Resources.resources
+E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Form2_back.resources
+E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.csproj.GenerateResource.Cache
+E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.pdb
