@@ -28,6 +28,8 @@ namespace DrapPanel
             {
                 StartPoint = startPoint;
                 EndPoint = startPoint;
+
+
             }
 
         }
