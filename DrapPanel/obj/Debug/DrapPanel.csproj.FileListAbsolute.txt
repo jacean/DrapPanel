@@ -23,3 +23,6 @@ E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Properties.Resources.resource
 E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Form2_back.resources
 E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.csproj.GenerateResource.Cache
 E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.pdb
+E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Form4.resources
+E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.tableElement.resources
+E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Form5.resources

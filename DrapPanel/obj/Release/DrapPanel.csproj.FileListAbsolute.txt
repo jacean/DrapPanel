@@ -11,3 +11,5 @@ E:\program\DrapPanel\DrapPanel\bin\Release\DrapPanel.pdb
 E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.exe
 E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.pdb
 E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.Form4.resources
+E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.tableElement.resources
+E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.Form5.resources
