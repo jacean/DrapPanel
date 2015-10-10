@@ -18,11 +18,14 @@ namespace DrapPanel
 
         private void Form4_Load(object sender, EventArgs e)
         {
-            this.Paint+=new PaintEventHandler(drawPanel_Paint);
-            this.MouseMove+=new MouseEventHandler(drawPanel_MouseMove);
+            //this.Paint+=new PaintEventHandler(drawPanel_Paint);
+            //this.MouseMove+=new MouseEventHandler(drawPanel_MouseMove);
+            panel4.Paint += new PaintEventHandler(drawPanel_Paint);
+            panel4.MouseMove += new MouseEventHandler(drawPanel_MouseMove);
             //s.MouseUp += new MouseEventHandler(drawPanel_MouseUp);
-
-            foreach(Control c in this.Controls)
+            //this.MouseWheel += new MouseEventHandler(Form4_MouseWheel);
+            panel4.MouseWheel += new MouseEventHandler(panel4_MouseWheel);
+            foreach(Control c in this.panel4.Controls)
             {
                 if (c.GetType().ToString() == "System.Windows.Forms.GroupBox")
                 { 
@@ -45,17 +48,60 @@ namespace DrapPanel
                             cc.MouseClick += new MouseEventHandler(cc_MouseClick);
                         }
                     }
-
-
                 }
             }
-
-           
 
             this.DoubleBuffered = true;
             this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
 
+        }
 
+        void panel4_MouseWheel(object sender, MouseEventArgs e)
+        {
+            float Mo = 0;
+            int flag = 1;
+            if (e.Delta > 0)
+            {
+                Mo = 1.02f;
+                flag = 1;
+               
+            }
+            else if (e.Delta < 0)
+            {
+                Mo = 0.98f; flag = -1;
+            }
+
+            foreach (Control ct in this.panel4.Controls)
+            {
+                ct.Width = (int)(Mo*ct.Width);
+                ct.Height= (int)(Mo*ct.Height);
+
+                ct.Left = ct.Left - e.X;
+                ct.Top = ct.Top - e.Y;
+
+
+                ct.Left +=  (int)((Mo-1)* (float)ct.Width*2 );
+                ct.Top += (int)((Mo-1) * (float)ct.Height*2);
+                foreach (Control cp in ct.Controls)
+                {
+                    listBox1.Width = cp.Width - 30;
+                    listBox1.Height = cp.Height-30;
+                    listBox2.Width = cp.Width-30;
+                    listBox2.Height = cp.Height-30;
+                }
+            }
+            label6.Text = inwin.ToString() + Mo.ToString();
+            this.Invalidate();
+        }
+
+
+
+
+
+
+        
+        void Form4_MouseWheel(object sender, MouseEventArgs e)
+        {
            
         }
 
@@ -80,6 +126,11 @@ namespace DrapPanel
                 count = 0;
                 src=null;
                 des=null;
+                label2.Text = "";
+                label3.Text = "";
+                label4.Text = "";
+                label5.Text = "";
+
             }
                
         }
@@ -101,7 +152,8 @@ namespace DrapPanel
             {//结束panel
                 if (location == 2 && startPaint)
                 {
-                    drawPanel_MouseUp((object)this, this.PointToClient(Control.MousePosition));
+                    //drawPanel_MouseUp((object)this, this.PointToClient(Control.MousePosition));
+                    drawPanel_MouseUp((object)panel4, this.PointToClient(Control.MousePosition));
                 }
                 mDown = false;
                 startPaint = false;
@@ -138,7 +190,6 @@ namespace DrapPanel
         }
 
        
-       
         private void panel_MouseEnter(object sender, EventArgs e)
         {
             des = sender;
@@ -165,7 +216,8 @@ namespace DrapPanel
                 label4.Text = "离开src" + sender.ToString();
                 location = 0;
                 startPaint = true;
-                drawPanel_MouseDown((object)this, this.PointToClient(Control.MousePosition));
+                //drawPanel_MouseDown((object)this, this.PointToClient(Control.MousePosition));
+                drawPanel_MouseDown((object)panel4, this.PointToClient(Control.MousePosition));
             }
             if (startPaint && location == 2)
             {
@@ -179,8 +231,6 @@ namespace DrapPanel
                 location = 0;
             }
         }
-        
-
         
 
         #region 划线，移动
@@ -380,6 +430,7 @@ namespace DrapPanel
                     //drawPanel.Invalidate();
                     this.Invalidate();
                     //splitContainer1.Panel1.Invalidate();
+                    this.Refresh();
                 }
             }
             else if (e.Button==MouseButtons.Left)
@@ -392,53 +443,15 @@ namespace DrapPanel
                     moveLine.StartPoint.Y = tempLine.StartPoint.Y + e.Y - moveStart.Y;
                     moveLine.EndPoint.Y = tempLine.EndPoint.Y + e.Y - moveStart.Y;
                     this.Invalidate();
+                    this.Refresh();
                     //splitContainer1.Panel1.Invalidate();
                 }
                 
             }
+            
            
         }
-        /// <summary>
-        /// 绘制效果到面板
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void drawPanel_Paint(object sender, PaintEventArgs e)
-        {
-            Bitmap bp = new Bitmap(this.Width, this.Height); // 用于缓冲输出的位图对象
-            //Bitmap bp = new Bitmap(this.Width, this.Height); // 用于缓冲输出的位图对象
 
-            Graphics g = Graphics.FromImage(bp);
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias; // 消锯齿（可选项）
-            Pen p = new Pen(Color.Black);
-            foreach (Line line in lines)
-            {
-                if (line == drawingLine || line == moveLine)
-                {
-                    // 当前绘制的线条是正在鼠标定位的线条
-                    p.Color = Color.Blue;
-                }
-                else
-                {
-                    p.Color = Color.Black;
-                }
-                g.DrawLine(p, line.StartPoint, line.EndPoint);
-            }
-            // 将缓冲位图绘制到输出
-            e.Graphics.DrawImage(bp, Point.Empty);
-            //移动容器
-            if (rect != Rectangle.Empty)
-            {
-                if (isDrag)
-                {//画一个和Control一样大小的黑框
-                    e.Graphics.DrawRectangle(Pens.Black, rect);
-                }
-                else
-                {
-                    e.Graphics.DrawRectangle(new Pen(this.BackColor), rect);
-                }
-            }
-        }
 
         private bool isBetween(int x, int y, int z)
         {
@@ -536,8 +549,74 @@ namespace DrapPanel
             return this.PointToClient(control.PointToScreen(p));
         }
 
-       
 
+        /// <summary>
+        /// 绘制效果到面板
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void drawPanel_Paint(object sender, PaintEventArgs e)
+        {
+
+            Bitmap bp = new Bitmap(panel4.Width, panel4.Height); // 用于缓冲输出的位图对象
+            //Bitmap bp = new Bitmap(this.Width, this.Height); // 用于缓冲输出的位图对象
+
+            Graphics g = Graphics.FromImage(bp);
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias; // 消锯齿（可选项）
+            Pen p = new Pen(Color.Black);
+            foreach (Line line in lines)
+            {
+                if (line == drawingLine || line == moveLine)
+                {
+                    // 当前绘制的线条是正在鼠标定位的线条
+                    p.Color = Color.Blue;
+                }
+                else
+                {
+                    p.Color = Color.Black;
+                }
+                g.DrawLine(p, line.StartPoint, line.EndPoint);
+            }
+            // 将缓冲位图绘制到输出
+            //e.Graphics.DrawImage(bp, Point.Empty);
+            e.Graphics.DrawImage(bp, panel4.Location);
+            //移动容器
+            if (rect != Rectangle.Empty)
+            {
+                if (isDrag)
+                {//画一个和Control一样大小的黑框
+                    e.Graphics.DrawRectangle(Pens.Black, rect);
+                }
+                else
+                {
+                    e.Graphics.DrawRectangle(new Pen(this.BackColor), rect);
+                }
+            }
+
+        }
+        bool inwin = false;
+        bool inpanel = false;
+        private void Form4_MouseEnter(object sender, EventArgs e)
+        {
+            inwin = true;
+            
+        }
+
+        private void Form4_MouseLeave(object sender, EventArgs e)
+        {
+            inwin = false; 
+        }
+
+        private void panel4_MouseEnter(object sender, EventArgs e)
+        {
+            inpanel = true;
+            this.panel4.Focus();
+        }
+
+        private void panel4_MouseLeave(object sender, EventArgs e)
+        {
+            inpanel = false;
+        }
     
     }
 }
