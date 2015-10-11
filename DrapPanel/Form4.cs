@@ -76,20 +76,50 @@ namespace DrapPanel
                 ct.Width = (int)(Mo*ct.Width);
                 ct.Height= (int)(Mo*ct.Height);
 
-                ct.Left = ct.Left - e.X;
-                ct.Top = ct.Top - e.Y;
-
-
-                ct.Left +=  (int)((Mo-1)* (float)ct.Width*2 );
-                ct.Top += (int)((Mo-1) * (float)ct.Height*2);
+                ct.Left -=  (int)((Mo-1)* ((float)ct.Width/2 ));//以自己中心为原点放大
+                ct.Left += (int)(((ct.Left + ct.Width/2) - e.X) * (float)(Mo - 1));//一鼠标为中心改变缩放偏移量
+                ct.Top -= (int)((Mo-1) * ((float)ct.Height/2));
+                ct.Top += (int)(((ct.Top + ct.Height/2) - e.Y) * (float)(Mo - 1));
+                
+                
                 foreach (Control cp in ct.Controls)
-                {
+                {//这里之后改
                     listBox1.Width = cp.Width - 30;
                     listBox1.Height = cp.Height-30;
                     listBox2.Width = cp.Width-30;
                     listBox2.Height = cp.Height-30;
                 }
+
             }
+            ///////////////////////////////
+            //移动线条////////////////////
+            //Bitmap bp = new Bitmap(panel4.Width, panel4.Height); // 用于缓冲输出的位图对象
+            ////Bitmap bp = new Bitmap(this.Width, this.Height); // 用于缓冲输出的位图对象
+
+            //Graphics g = Graphics.FromImage(bp);
+            //g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias; // 消锯齿（可选项）
+            //Pen p = new Pen(Color.Black);
+            //foreach (Line line in lines)
+            //{
+            //    if (line == drawingLine || line == moveLine)
+            //    {
+            //        // 当前绘制的线条是正在鼠标定位的线条
+            //        p.Color = Color.Blue;
+            //    }
+            //    else
+            //    {
+            //        p.Color = Color.Black;
+            //    }
+            //    g.DrawLine(p, line.StartPoint, line.EndPoint);
+            //}
+            //// 将缓冲位图绘制到输出
+            ////e.Graphics.DrawImage(bp, Point.Empty);
+            //e.Graphics.DrawImage(bp, panel4.Location);
+
+
+            ///////////////////////////////
+
+
             label6.Text = inwin.ToString() + Mo.ToString();
             this.Invalidate();
         }
