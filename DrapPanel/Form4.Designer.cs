@@ -226,8 +226,7 @@
             this.Name = "Form4";
             this.Text = "Form4";
             this.Load += new System.EventHandler(this.Form4_Load);
-            this.MouseEnter += new System.EventHandler(this.Form4_MouseEnter);
-            this.MouseLeave += new System.EventHandler(this.Form4_MouseLeave);
+            
             this.groupBox2.ResumeLayout(false);
             this.panel3.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);

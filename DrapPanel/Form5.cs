@@ -15,5 +15,16 @@ namespace DrapPanel
         {
             InitializeComponent();
         }
+        public Form5(string s,string d)
+        {
+            InitializeComponent();
+            src = s;
+            des = d;
+        }
+        public string src = "";
+        public string des = "";
+
+
+
     }
 }

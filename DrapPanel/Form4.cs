@@ -18,14 +18,11 @@ namespace DrapPanel
 
         private void Form4_Load(object sender, EventArgs e)
         {
-            //this.Paint+=new PaintEventHandler(drawPanel_Paint);
-            //this.MouseMove+=new MouseEventHandler(drawPanel_MouseMove);
-            panel4.Paint += new PaintEventHandler(drawPanel_Paint);
-            panel4.MouseMove += new MouseEventHandler(drawPanel_MouseMove);
+           
+            panel4.Paint += new PaintEventHandler(panel4_Paint);
+            panel4.MouseMove += new MouseEventHandler(panel4_MouseMove);
             panel4.MouseDown += new MouseEventHandler(panel4_MouseDown);
             panel4.MouseUp += new MouseEventHandler(panel4_MouseUp);
-            //s.MouseUp += new MouseEventHandler(drawPanel_MouseUp);
-            //this.MouseWheel += new MouseEventHandler(Form4_MouseWheel);
             panel4.MouseWheel += new MouseEventHandler(panel4_MouseWheel);
             foreach(Control c in this.panel4.Controls)
             {
@@ -41,9 +38,7 @@ namespace DrapPanel
                         {
                             cc.MouseEnter += new EventHandler(panel_MouseEnter);
                             cc.MouseLeave += new EventHandler(panel_MouseLeave);
-                            //cc.MouseDown += new MouseEventHandler(panel_MouseDown);
                             cc.MouseMove += new MouseEventHandler(panel_MouseMove);
-                            //cc.MouseUp += new MouseEventHandler(panel_MouseUp);
                             cc.MouseClick += new MouseEventHandler(panel_MouseClick);
                         }
                     }
@@ -72,12 +67,11 @@ namespace DrapPanel
             }
         }
 
-        void panel4_MouseDown(object sender, MouseEventArgs e)//记得给加一个up事件，加了后删除这条注释
+        void panel4_MouseDown(object sender, MouseEventArgs e)
         {
             int x = e.Location.X;
             int y = e.Location.Y;
-            //int x = this.getPointToForm((Control)sender,e.Location).X;
-            //int y = this.getPointToForm((Control)sender, e.Location).Y;
+           
             foreach (Line l in lines)
             {
                 if (l.StartPoint.X == l.EndPoint.X)
@@ -172,15 +166,48 @@ namespace DrapPanel
                 moveStart = e.Location;
                 label7.Text = moveLine.srcg.ToString();
                 label8.Text = moveLine.desg.ToString();
+                Form5 newform = new Form5();
+                newform.ShowDialog();
             }
-            //else
-            //{
+           
+        }
 
-            //    label2.Text = "startPoint" + e.ToString();
-            //    drawingLine = new Line(e);
-            //    lines.Add(drawingLine);
+        /// <summary>
+        /// 在绘图区移动鼠标时，如果正在绘制新线条，就更新绘制面板
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void panel4_MouseMove(object sender, MouseEventArgs e)
+        {
+            label1.Text = sender.ToString() + "\n" + getPointToForm((Control)sender, e.Location).ToString();
+            if (startPaint && location == 0)
+            {
+                if (drawingLine != null)
+                {
+                    label3.Text = "endPoint" + e.Location.ToString();
+                    drawingLine.EndPoint = e.Location;
 
-            //}
+                    //drawPanel.Invalidate();
+                    this.Invalidate();
+                    //splitContainer1.Panel1.Invalidate();
+                    this.Refresh();
+                }
+            }
+            else if (e.Button == MouseButtons.Left)
+            {
+                if (drawingLine == null && inLine)
+                {
+                    //moveLine的坐标转换
+                    moveLine.StartPoint.X = tempLine.StartPoint.X + e.X - moveStart.X;
+                    moveLine.EndPoint.X = tempLine.EndPoint.X + e.X - moveStart.X;
+                    moveLine.StartPoint.Y = tempLine.StartPoint.Y + e.Y - moveStart.Y;
+                    moveLine.EndPoint.Y = tempLine.EndPoint.Y + e.Y - moveStart.Y;
+                    this.Invalidate();
+                    this.Refresh();
+                    //splitContainer1.Panel1.Invalidate();
+                }
+
+            }
 
 
         }
@@ -188,16 +215,16 @@ namespace DrapPanel
         void panel4_MouseWheel(object sender, MouseEventArgs e)
         {
             float Mo = 0;
-            int flag = 1;
+           
             if (e.Delta > 0)
             {
                 Mo = 1.02f;
-                flag = 1;
+              
                
             }
             else if (e.Delta < 0)
             {
-                Mo = 0.98f; flag = -1;
+                Mo = 0.98f;
             }
 
             foreach (Control ct in this.panel4.Controls)
@@ -211,6 +238,8 @@ namespace DrapPanel
                 //ct.Top += (int)(((ct.Top + ct.Height/2) - e.Y) * (float)(Mo - 1));
                 ct.Left += (int)((float)(ct.Left - e.X) * (Mo - 1));
                 ct.Top += (int)((float)(ct.Top - e.Y) * (Mo - 1));
+                //ct.Location = getPointToForm((Control)sender, new Point(e.Location.X - mouseDownPoint.X, e.Location.Y - mouseDownPoint.Y));
+                
                 foreach (Control cp in ct.Controls)
                 {//这里之后改
                     listBox1.Width = cp.Width - 30;
@@ -227,10 +256,24 @@ namespace DrapPanel
             {
               
                 //线条的起始坐标转换
-                line.StartPoint.X+= (int)((float)(line.StartPoint.X - e.X) * (Mo - 1));
+                line.StartPoint.X += (int)((float)(line.StartPoint.X - e.X) * (Mo - 1));
                 line.StartPoint.Y += (int)((float)(line.StartPoint.Y - e.Y) * (Mo - 1));
                 line.EndPoint.X += (int)((float)(line.EndPoint.X - e.X) * (Mo - 1));
                 line.EndPoint.Y += (int)((float)(line.EndPoint.Y - e.Y) * (Mo - 1));
+
+                //用相对坐标试下
+                //
+                //drawingLine.startPointtoSender.X = this.PointToClient(Control.MousePosition).X - drawingLine.srcg.Location.X;
+                //drawingLine.startPointtoSender.Y = this.PointToClient(Control.MousePosition).Y - drawingLine.srcg.Location.Y;
+                //
+                //line.startPointtoSender.X += (int)((float)(line.startPointtoSender.X - e.X) * (Mo - 1));
+                //line.startPointtoSender.Y += (int)((float)(line.startPointtoSender.Y - e.Y) * (Mo - 1));
+                //line.endPointtoSender.X += (int)((float)(line.endPointtoSender.X - e.X) * (Mo - 1));
+                //line.endPointtoSender.Y += (int)((float)(line.endPointtoSender.Y - e.Y) * (Mo - 1));
+
+                //line.StartPoint = new Point(line.srcg.Location.X + line.startPointtoSender.X, line.srcg.Location.Y + line.startPointtoSender.Y);
+                //line.EndPoint = new Point(line.desg.Location.X + line.endPointtoSender.X, line.desg.Location.Y + line.endPointtoSender.Y);
+
             }
            
             ///////////////////////////////
@@ -241,13 +284,69 @@ namespace DrapPanel
             this.Refresh();
         }
 
-
-        
-        void Form4_MouseWheel(object sender, MouseEventArgs e)
+        /// <summary>
+        /// 绘制效果到面板
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        void panel4_Paint(object sender, PaintEventArgs e)
         {
-           
+
+            Bitmap bp = new Bitmap(panel4.Width, panel4.Height); // 用于缓冲输出的位图对象
+            //Bitmap bp = new Bitmap(this.Width, this.Height); // 用于缓冲输出的位图对象
+
+            Graphics g = Graphics.FromImage(bp);
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias; // 消锯齿（可选项）
+            Pen p = new Pen(Color.Black);
+            foreach (Line line in lines)
+            {
+                if (line == drawingLine || line == moveLine)
+                {
+                    // 当前绘制的线条是正在鼠标定位的线条
+                    p.Color = Color.Blue;
+                }
+                else
+                {
+                    p.Color = Color.Black;
+                }
+                g.DrawLine(p, line.StartPoint, line.EndPoint);
+            }
+            // 将缓冲位图绘制到输出
+            //e.Graphics.DrawImage(bp, Point.Empty);
+            e.Graphics.DrawImage(bp, panel4.Location);
+            //移动容器
+            if (rect != Rectangle.Empty)
+            {
+                if (isDrag)
+                {//画一个和Control一样大小的黑框
+                    e.Graphics.DrawRectangle(Pens.Black, rect);
+                }
+                else
+                {
+                    e.Graphics.DrawRectangle(new Pen(this.BackColor), rect);
+                }
+            }
+
         }
 
+        private void panel4_MouseEnter(object sender, EventArgs e)
+        {
+
+            this.panel4.Focus();
+        }
+
+        private void panel4_MouseLeave(object sender, EventArgs e)
+        {
+
+        }
+
+
+        bool mDown = false;
+        object src;
+        object des;
+        bool startPaint = false;
+        int location = 0;//0在form，1在src，2在des
+        int count = 0;//只有count=1，才启动画新线
         void panel_MouseClick(object sender, MouseEventArgs e)
         {
             if (mDown == false)
@@ -261,7 +360,12 @@ namespace DrapPanel
             {//结束panel
                 if (location == 2 && startPaint)
                 {
+
                     drawingLine.desg = (GroupBox)((Panel)sender).Parent;
+                    //
+                    drawingLine.endPointtoSender.X = this.PointToClient(Control.MousePosition).X - drawingLine.desg.Location.X;
+                    drawingLine.endPointtoSender.Y = this.PointToClient(Control.MousePosition).Y - drawingLine.desg.Location.Y;
+                    //
                     label6.Text = drawingLine.desg.ToString();
                     drawPanel_MouseUp((object)this, this.PointToClient(Control.MousePosition));
 
@@ -270,7 +374,7 @@ namespace DrapPanel
                 {
                     if (drawingLine != null)
                     {
-                        //清空之前的line吗？
+                        //清空之前的line
                         drawingLine.StartPoint = Point.Empty;
                         drawingLine.EndPoint = Point.Empty;
                         drawingLine = null;
@@ -294,12 +398,6 @@ namespace DrapPanel
                
         }
 
-        bool mDown = false;
-        object src;
-        object des;
-        bool startPaint = false;
-        int location = 0;//0在form，1在src，2在des
-        int count = 0;//只有count=1，才启动画新线
         void panel_MouseDown(object sender, MouseEventArgs e)
         {
             if (mDown == false)
@@ -322,6 +420,7 @@ namespace DrapPanel
                
             
         }
+
         void panel_MouseUp(object sender, MouseEventArgs e)
         {
             
@@ -352,7 +451,6 @@ namespace DrapPanel
                 this.Refresh();
             }
         }
-
        
         private void panel_MouseEnter(object sender, EventArgs e)
         {
@@ -383,6 +481,10 @@ namespace DrapPanel
                 //drawPanel_MouseDown((object)this, this.PointToClient(Control.MousePosition));
                 drawPanel_MouseDown((object)panel4, this.PointToClient(Control.MousePosition));
                 drawingLine.srcg = (GroupBox)((Panel)sender).Parent;
+                //
+                drawingLine.startPointtoSender.X = this.PointToClient(Control.MousePosition).X - drawingLine.srcg.Location.X;
+                drawingLine.startPointtoSender.Y = this.PointToClient(Control.MousePosition).Y - drawingLine.srcg.Location.Y;
+                //
                 label6.Text = drawingLine.srcg.ToString();
             }
             if (startPaint && location == 2)
@@ -407,6 +509,8 @@ namespace DrapPanel
             public Point StartPoint = Point.Empty;
             public Point EndPoint = Point.Empty;
             public GroupBox srcg;
+            public Point startPointtoSender = Point.Empty;
+            public Point endPointtoSender = Point.Empty;
             public GroupBox desg;
             public Line(Point startPoint)
             {
@@ -453,7 +557,6 @@ namespace DrapPanel
         /// <param name="sender"></param>
         /// <param name="e"></param>
         void drawPanel_MouseUp(object sender, Point e)
-        //void drawPanel_MouseUp(object sender, MouseEventArgs e)
         {
             if (drawingLine == null && inLine)
             {
@@ -492,7 +595,6 @@ namespace DrapPanel
         /// <param name="sender"></param>
         /// <param name="e"></param>
         void drawPanel_MouseDown(object sender, Point e)
-        //void drawPanel_MouseDown(object sender, MouseEventArgs e)
         {
             //int x=e.Location.X;
             //int y=e.Location.Y;
@@ -573,52 +675,13 @@ namespace DrapPanel
 
                 label2.Text = "startPoint" + e.ToString();
                 drawingLine = new Line(e);
+                
                 lines.Add(drawingLine);
 
             }
 
 
         }
-        /// <summary>
-        /// 在绘图区移动鼠标时，如果正在绘制新线条，就更新绘制面板
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void drawPanel_MouseMove(object sender, MouseEventArgs e)
-        {
-            label1.Text = sender.ToString()+"\n"+getPointToForm((Control)sender, e.Location).ToString();
-            if (startPaint&&location==0)
-            {
-                if (drawingLine != null)
-                {
-                    label3.Text = "endPoint" + e.Location.ToString();
-                    drawingLine.EndPoint = e.Location;
-
-                    //drawPanel.Invalidate();
-                    this.Invalidate();
-                    //splitContainer1.Panel1.Invalidate();
-                    this.Refresh();
-                }
-            }
-            else if (e.Button==MouseButtons.Left)
-            {
-                if (drawingLine == null && inLine)
-                {
-                    //moveLine的坐标转换
-                    moveLine.StartPoint.X = tempLine.StartPoint.X + e.X - moveStart.X;
-                    moveLine.EndPoint.X = tempLine.EndPoint.X + e.X - moveStart.X;
-                    moveLine.StartPoint.Y = tempLine.StartPoint.Y + e.Y - moveStart.Y;
-                    moveLine.EndPoint.Y = tempLine.EndPoint.Y + e.Y - moveStart.Y;
-                    this.Invalidate();
-                    this.Refresh();
-                    //splitContainer1.Panel1.Invalidate();
-                }
-                
-            }
-            
-           
-        }
-
 
         private bool isBetween(int x, int y, int z)
         {
@@ -633,6 +696,7 @@ namespace DrapPanel
                 return false;
             }
         }
+
         #endregion
 
         #region controlevent 移动控件
@@ -642,6 +706,7 @@ namespace DrapPanel
         Rectangle rect = Rectangle.Empty;
         //是否正在拖拽
         bool isDrag = false;
+
         void control_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
@@ -691,7 +756,7 @@ namespace DrapPanel
             rect = Rectangle.Empty;
             isDrag = false;
         }
-        //窗体重绘,该部分移动至画线那里
+        //窗体重绘,该部分移动至画线那里,如果单独需的话把这部分加入控件事件里
         //private void FormDrag_Paint(object sender, PaintEventArgs e)
         //{
         //    if (rect != Rectangle.Empty)
@@ -717,74 +782,6 @@ namespace DrapPanel
             return this.PointToClient(control.PointToScreen(p));
         }
 
-
-        /// <summary>
-        /// 绘制效果到面板
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        void drawPanel_Paint(object sender, PaintEventArgs e)
-        {
-
-            Bitmap bp = new Bitmap(panel4.Width, panel4.Height); // 用于缓冲输出的位图对象
-            //Bitmap bp = new Bitmap(this.Width, this.Height); // 用于缓冲输出的位图对象
-
-            Graphics g = Graphics.FromImage(bp);
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias; // 消锯齿（可选项）
-            Pen p = new Pen(Color.Black);
-            foreach (Line line in lines)
-            {
-                if (line == drawingLine || line == moveLine)
-                {
-                    // 当前绘制的线条是正在鼠标定位的线条
-                    p.Color = Color.Blue;
-                }
-                else
-                {
-                    p.Color = Color.Black;
-                }
-                g.DrawLine(p, line.StartPoint, line.EndPoint);
-            }
-            // 将缓冲位图绘制到输出
-            //e.Graphics.DrawImage(bp, Point.Empty);
-            e.Graphics.DrawImage(bp, panel4.Location);
-            //移动容器
-            if (rect != Rectangle.Empty)
-            {
-                if (isDrag)
-                {//画一个和Control一样大小的黑框
-                    e.Graphics.DrawRectangle(Pens.Black, rect);
-                }
-                else
-                {
-                    e.Graphics.DrawRectangle(new Pen(this.BackColor), rect);
-                }
-            }
-
-        }
-        bool inwin = false;
-        bool inpanel = false;
-        private void Form4_MouseEnter(object sender, EventArgs e)
-        {
-            inwin = true;
-            
-        }
-
-        private void Form4_MouseLeave(object sender, EventArgs e)
-        {
-            inwin = false; 
-        }
-
-        private void panel4_MouseEnter(object sender, EventArgs e)
-        {
-            inpanel = true;
-            this.panel4.Focus();
-        }
-
-        private void panel4_MouseLeave(object sender, EventArgs e)
-        {
-            inpanel = false;
-        }
-    
+       
     }
 }
