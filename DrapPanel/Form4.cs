@@ -65,6 +65,10 @@ namespace DrapPanel
                     listBox1.Items.Add(l.StartPoint.ToString() + "," + l.EndPoint.ToString());
                 }
             }
+            if (isMoveForm)
+            {
+                isMoveForm = false;
+            }
         }
 
         void panel4_MouseDown(object sender, MouseEventArgs e)
@@ -166,11 +170,34 @@ namespace DrapPanel
                 moveStart = e.Location;
                 label7.Text = moveLine.srcg.ToString();
                 label8.Text = moveLine.desg.ToString();
-                Form5 newform = new Form5();
-                newform.ShowDialog();
+                label9.Text = moveLine.startPointtoSender.ToString();
+                label10.Text = moveLine.endPointtoSender.ToString();
+                //Form5 newform = new Form5();
+                //newform.ShowDialog();
+            }
+            else
+            {//画面整体移动//怎么才能把控件画在画布上，这样调整画布的起始坐标就好了嘛
+                isMoveForm = true;
+                movestartPoint = e.Location;
+                //给附加坐标赋值
+                foreach (Line l in lines)
+                {
+                    l.endPointAdd = l.EndPoint;
+                    l.startPointAdd = l.StartPoint;
+                }
+                pointList.Clear();
+                foreach (GroupBox gr in panel4.Controls)
+                {
+                    pointList.Add(gr.Location);
+                }
+                
             }
            
         }
+        List<Point> pointList = new List<Point>();
+        public bool isMoveForm= false;//是否在拖动画面
+        public Point movestartPoint = Point.Empty;
+        
 
         /// <summary>
         /// 在绘图区移动鼠标时，如果正在绘制新线条，就更新绘制面板
@@ -179,14 +206,15 @@ namespace DrapPanel
         /// <param name="e"></param>
         void panel4_MouseMove(object sender, MouseEventArgs e)
         {
-            label1.Text = sender.ToString() + "\n" + getPointToForm((Control)sender, e.Location).ToString();
+            
             if (startPaint && location == 0)
             {
+                label1.Text = sender.ToString() + "\n" + getPointToForm((Control)sender, e.Location).ToString();
                 if (drawingLine != null)
                 {
                     label3.Text = "endPoint" + e.Location.ToString();
                     drawingLine.EndPoint = e.Location;
-
+                  
                     //drawPanel.Invalidate();
                     this.Invalidate();
                     //splitContainer1.Panel1.Invalidate();
@@ -195,6 +223,7 @@ namespace DrapPanel
             }
             else if (e.Button == MouseButtons.Left)
             {
+                label1.Text = "正在移动线条";
                 if (drawingLine == null && inLine)
                 {
                     //moveLine的坐标转换
@@ -202,12 +231,49 @@ namespace DrapPanel
                     moveLine.EndPoint.X = tempLine.EndPoint.X + e.X - moveStart.X;
                     moveLine.StartPoint.Y = tempLine.StartPoint.Y + e.Y - moveStart.Y;
                     moveLine.EndPoint.Y = tempLine.EndPoint.Y + e.Y - moveStart.Y;
+                   
                     this.Invalidate();
                     this.Refresh();
                     //splitContainer1.Panel1.Invalidate();
                 }
 
             }
+
+            if (isMoveForm)
+            {
+                //Bitmap bp = new Bitmap(panel4.Width, panel4.Height); // 用于缓冲输出的位图对象
+                ////Bitmap bp = new Bitmap(this.Width, this.Height); // 用于缓冲输出的位图对象
+
+                //Graphics g = Graphics.FromImage(bp);
+                //g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias; // 消锯齿（可选项）
+                //Pen p = new Pen(Color.Black);
+                foreach (Line line in lines)
+                {
+
+                    //坐标转换  //只在确定移动的时候赋值，然后使用应该就可以了吧，就是在down时              
+                    //rect.Location = getPointToForm((Control)sender,new Point(e.Location.X - mouseDownPoint.X, e.Location.Y - mouseDownPoint.Y));
+
+                    line.StartPoint.X =line.startPointAdd.X- movestartPoint.X +e.X;
+                    line.StartPoint.Y = line.startPointAdd.Y-movestartPoint.Y+ e.Y;
+
+                    line.EndPoint.X =line.endPointAdd.X- movestartPoint.X+ e.X;
+                    line.EndPoint.Y =line.endPointAdd.Y- movestartPoint.Y+ e.Y;
+
+                   
+                }
+               
+                //移动容器
+                int i = 0;
+                foreach (GroupBox grp in panel4.Controls)
+                {
+
+                    grp.Left = pointList[i].X-movestartPoint.X+e.X;
+                    grp.Top = pointList[i++].Y-movestartPoint.Y+e.Y;
+                }
+                this.Invalidate();
+                this.Refresh();
+            }
+
 
 
         }
@@ -229,8 +295,8 @@ namespace DrapPanel
 
             foreach (Control ct in this.panel4.Controls)
             {//看成是点的移动
-                ct.Width = (int)(Mo*ct.Width);
-                ct.Height= (int)(Mo*ct.Height);
+                ct.Width += (int)((Mo-1)*(float)ct.Width);
+                ct.Height+= (int)((Mo-1)*(float)ct.Height);
 
                 //ct.Left -=  (int)((Mo-1)* ((float)ct.Width/2 ));//以自己中心为原点放大
                 //ct.Left += (int)(((ct.Left + ct.Width/2) - e.X) * (float)(Mo - 1));//一鼠标为中心改变缩放偏移量
@@ -256,10 +322,10 @@ namespace DrapPanel
             {
               
                 //线条的起始坐标转换
-                line.StartPoint.X += (int)((float)(line.StartPoint.X - e.X) * (Mo - 1));
-                line.StartPoint.Y += (int)((float)(line.StartPoint.Y - e.Y) * (Mo - 1));
-                line.EndPoint.X += (int)((float)(line.EndPoint.X - e.X) * (Mo - 1));
-                line.EndPoint.Y += (int)((float)(line.EndPoint.Y - e.Y) * (Mo - 1));
+                //line.StartPoint.X += (int)((float)(line.StartPoint.X - e.X) * (Mo - 1));
+                //line.StartPoint.Y += (int)((float)(line.StartPoint.Y - e.Y) * (Mo - 1));
+                //line.EndPoint.X += (int)((float)(line.EndPoint.X - e.X) * (Mo - 1));
+                //line.EndPoint.Y += (int)((float)(line.EndPoint.Y - e.Y) * (Mo - 1));
 
                 //用相对坐标试下
                 //
@@ -270,9 +336,14 @@ namespace DrapPanel
                 //line.startPointtoSender.Y += (int)((float)(line.startPointtoSender.Y - e.Y) * (Mo - 1));
                 //line.endPointtoSender.X += (int)((float)(line.endPointtoSender.X - e.X) * (Mo - 1));
                 //line.endPointtoSender.Y += (int)((float)(line.endPointtoSender.Y - e.Y) * (Mo - 1));
+                line.startPointtoSender.X += (int)((float)(line.startPointtoSender.X ) * (Mo - 1));
+                line.startPointtoSender.Y += (int)((float)(line.startPointtoSender.Y ) * (Mo - 1));
+                line.endPointtoSender.X += (int)((float)(line.endPointtoSender.X) * (Mo - 1));
+                line.endPointtoSender.Y += (int)((float)(line.endPointtoSender.Y ) * (Mo - 1));
+                line.StartPoint = new Point(line.srcg.Location.X + line.startPointtoSender.X, line.srcg.Location.Y + line.startPointtoSender.Y);
+                line.EndPoint = new Point(line.desg.Location.X + line.endPointtoSender.X, line.desg.Location.Y + line.endPointtoSender.Y);
+               
 
-                //line.StartPoint = new Point(line.srcg.Location.X + line.startPointtoSender.X, line.srcg.Location.Y + line.startPointtoSender.Y);
-                //line.EndPoint = new Point(line.desg.Location.X + line.endPointtoSender.X, line.desg.Location.Y + line.endPointtoSender.Y);
 
             }
            
@@ -508,6 +579,9 @@ namespace DrapPanel
         {
             public Point StartPoint = Point.Empty;
             public Point EndPoint = Point.Empty;
+            //加附点以便在画面整体移动时定位
+            public Point startPointAdd = Point.Empty;
+            public Point endPointAdd = Point.Empty;
             public GroupBox srcg;
             public Point startPointtoSender = Point.Empty;
             public Point endPointtoSender = Point.Empty;
@@ -515,6 +589,7 @@ namespace DrapPanel
             public Line(Point startPoint)
             {
                 StartPoint = startPoint;
+                startPointAdd = startPoint;//给附加坐标赋值，随之变化
                 EndPoint = startPoint;
             }
 
@@ -560,6 +635,7 @@ namespace DrapPanel
         {
             if (drawingLine == null && inLine)
             {
+               
                 inLine = false;
                 moveLine = null; tempLine = null;
             }
@@ -574,7 +650,7 @@ namespace DrapPanel
             else
             {
                 drawingLine.EndPoint = e;
-                
+               
                 drawingLine = null;
             }
 
