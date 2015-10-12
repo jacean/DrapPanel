@@ -241,28 +241,21 @@ namespace DrapPanel
 
             if (isMoveForm)
             {
-                //Bitmap bp = new Bitmap(panel4.Width, panel4.Height); // 用于缓冲输出的位图对象
-                ////Bitmap bp = new Bitmap(this.Width, this.Height); // 用于缓冲输出的位图对象
-
-                //Graphics g = Graphics.FromImage(bp);
-                //g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias; // 消锯齿（可选项）
-                //Pen p = new Pen(Color.Black);
+                
                 foreach (Line line in lines)
                 {
 
                     //坐标转换  //只在确定移动的时候赋值，然后使用应该就可以了吧，就是在down时              
-                    //rect.Location = getPointToForm((Control)sender,new Point(e.Location.X - mouseDownPoint.X, e.Location.Y - mouseDownPoint.Y));
-
+                   
                     line.StartPoint.X =line.startPointAdd.X- movestartPoint.X +e.X;
                     line.StartPoint.Y = line.startPointAdd.Y-movestartPoint.Y+ e.Y;
 
                     line.EndPoint.X =line.endPointAdd.X- movestartPoint.X+ e.X;
                     line.EndPoint.Y =line.endPointAdd.Y- movestartPoint.Y+ e.Y;
-
                    
                 }
                
-                //移动容器
+                //移动容器,依靠的是系统对groupbox的遍历是一致的顺序
                 int i = 0;
                 foreach (GroupBox grp in panel4.Controls)
                 {
@@ -273,7 +266,6 @@ namespace DrapPanel
                 this.Invalidate();
                 this.Refresh();
             }
-
 
 
         }
@@ -304,8 +296,9 @@ namespace DrapPanel
                 //ct.Top += (int)(((ct.Top + ct.Height/2) - e.Y) * (float)(Mo - 1));
                 ct.Left += (int)((float)(ct.Left - e.X) * (Mo - 1));
                 ct.Top += (int)((float)(ct.Top - e.Y) * (Mo - 1));
-                //ct.Location = getPointToForm((Control)sender, new Point(e.Location.X - mouseDownPoint.X, e.Location.Y - mouseDownPoint.Y));
                 
+
+                /////////
                 foreach (Control cp in ct.Controls)
                 {//这里之后改
                     listBox1.Width = cp.Width - 30;
@@ -321,21 +314,14 @@ namespace DrapPanel
             foreach (Line line in lines)
             {
               
-                //线条的起始坐标转换
+                //线条的起始坐标转换,这个有误差，且越积累越大
                 //line.StartPoint.X += (int)((float)(line.StartPoint.X - e.X) * (Mo - 1));
                 //line.StartPoint.Y += (int)((float)(line.StartPoint.Y - e.Y) * (Mo - 1));
                 //line.EndPoint.X += (int)((float)(line.EndPoint.X - e.X) * (Mo - 1));
                 //line.EndPoint.Y += (int)((float)(line.EndPoint.Y - e.Y) * (Mo - 1));
 
                 //用相对坐标试下
-                //
-                //drawingLine.startPointtoSender.X = this.PointToClient(Control.MousePosition).X - drawingLine.srcg.Location.X;
-                //drawingLine.startPointtoSender.Y = this.PointToClient(Control.MousePosition).Y - drawingLine.srcg.Location.Y;
-                //
-                //line.startPointtoSender.X += (int)((float)(line.startPointtoSender.X - e.X) * (Mo - 1));
-                //line.startPointtoSender.Y += (int)((float)(line.startPointtoSender.Y - e.Y) * (Mo - 1));
-                //line.endPointtoSender.X += (int)((float)(line.endPointtoSender.X - e.X) * (Mo - 1));
-                //line.endPointtoSender.Y += (int)((float)(line.endPointtoSender.Y - e.Y) * (Mo - 1));
+                //                
                 line.startPointtoSender.X += (int)((float)(line.startPointtoSender.X ) * (Mo - 1));
                 line.startPointtoSender.Y += (int)((float)(line.startPointtoSender.Y ) * (Mo - 1));
                 line.endPointtoSender.X += (int)((float)(line.endPointtoSender.X) * (Mo - 1));
@@ -344,13 +330,9 @@ namespace DrapPanel
                 line.EndPoint = new Point(line.desg.Location.X + line.endPointtoSender.X, line.desg.Location.Y + line.endPointtoSender.Y);
                
 
-
             }
            
-            ///////////////////////////////
-
-
-          
+           
             this.Invalidate();
             this.Refresh();
         }
@@ -626,6 +608,8 @@ namespace DrapPanel
         //private LineControl drawPanel = new LineControl();
         #endregion
 
+
+        #region 变身为化线等坐标的处理函数
         /// <summary>
         /// 在绘图区释放鼠标，结束当前线条绘制
         /// </summary>
@@ -740,9 +724,6 @@ namespace DrapPanel
             }
             if (inLine)//不在已有的线上
             {
-
-                //move
-                //moveStart = e.Location;
                 moveStart = e;
 
             }
@@ -758,6 +739,8 @@ namespace DrapPanel
 
 
         }
+
+        #endregion
 
         private bool isBetween(int x, int y, int z)
         {
