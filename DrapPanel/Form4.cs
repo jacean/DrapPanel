@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Data.SqlClient;
-
+using System.IO;
 namespace DrapPanel
 {
     public partial class Form4 : Form
@@ -26,26 +26,8 @@ namespace DrapPanel
             panel4.MouseDown += new MouseEventHandler(panel4_MouseDown);
             panel4.MouseUp += new MouseEventHandler(panel4_MouseUp);
             panel4.MouseWheel += new MouseEventHandler(panel4_MouseWheel);
-            foreach(Control c in this.panel4.Controls)
-            //{
-            //    if (c.GetType().ToString() == "System.Windows.Forms.GroupBox")
-            //    { 
-            //        c.MouseDown+=new MouseEventHandler(control_MouseDown);
-            //        c.MouseMove+=new MouseEventHandler(control_MouseMove);
-            //        c.MouseUp+=new MouseEventHandler(control_MouseUp);
 
-            //        foreach (Control cc in c.Controls)
-            //        {
-            //            if (cc.GetType().ToString() == "System.Windows.Forms.Panel")
-            //            {
-            //                cc.MouseEnter += new EventHandler(panel_MouseEnter);
-            //                cc.MouseLeave += new EventHandler(panel_MouseLeave);
-            //                cc.MouseMove += new MouseEventHandler(panel_MouseMove);
-            //                cc.MouseClick += new MouseEventHandler(panel_MouseClick);
-            //            }
-            //        }
-            //    }
-            //}
+            loadData();
 
             this.DoubleBuffered = true;
             this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
@@ -62,66 +44,13 @@ namespace DrapPanel
 
         private void button1_Click(object sender, EventArgs e)
         {
-            DataTable tblFields = sqlconn.cn_Sql.GetSchema(SqlClientMetaDataCollectionNames.Columns);
+            
             GroupBox grp = new GroupBox();
-            grp.Text = comboBox1.Text;
-            grp.Name = comboBox1.Text;
-            grp.Width = 150;
-            grp.Height = 300;
-            grp.MouseDown += new MouseEventHandler(control_MouseDown);
-            grp.MouseMove += new MouseEventHandler(control_MouseMove);
-            grp.MouseUp += new MouseEventHandler(control_MouseUp);
-            Panel panel = new Panel();
-            
-            panel.MouseEnter += new EventHandler(panel_MouseEnter);
-            panel.MouseLeave += new EventHandler(panel_MouseLeave);
-            panel.MouseMove += new MouseEventHandler(panel_MouseMove);
-            panel.MouseClick += new MouseEventHandler(panel_MouseClick);
-            ListView lv = new ListView();
-            lv.View = View.Details;
-            lv.FullRowSelect = true;
-            lv.GridLines = true;
-            lv.Scrollable = true;
-            lv.MultiSelect = false;
-            lv.HoverSelection = true;
-            
-            #region add data
-            lv.Columns.Add("字段名", 100, HorizontalAlignment.Left);
-            lv.Columns.Add("字段类型", 100, HorizontalAlignment.Left);
-            //lv.Columns.Add("列标题3", 100, HorizontalAlignment.Left);
-            //add list
-            lv.BeginUpdate();  
-             //数据更新，UI暂时挂起，直到EndUpdate绘制控件，可以有效避免闪烁并大大提高加载速度
-            for (int i = 0; i < tblFields.Rows.Count; i++)
-            {
-                if (tblFields.Rows[i]["Table_Name"].ToString() == comboBox1.Text)
-                {
-                        ListViewItem lvi = new ListViewItem();
-                        // lvi.ImageIndex = i;     //通过与imageList绑定，显示imageList中第i项图标
-
-                        lvi.Text = tblFields.Rows[i]["Column_Name"].ToString();
-                        lvi.SubItems.Add(tblFields.Rows[i]["DATA_TYPE"].ToString());
-                        lv.Items.Add(lvi);
-                   
-                }
-            }
-            lv.EndUpdate();  //结束数据处理，UI界面一次性绘制。
-            #endregion
-            panel4.Controls.Add(grp);
-            grp.Controls.Add(panel);
-            panel.Dock = DockStyle.Fill;
-            panel.Controls.Add(lv);
-            lv.Width = panel.Width - 30;
-            lv.Height = panel.Height - 30;
-            lv.Location = new Point(15, 15);
+            addNewGroupBox(grp,comboBox1.Text);
             
         }
 
-        //
-        //string tbl = rField["Table_Name"].ToString();
-        //string fld = rField["Column_Name"].ToString();
-        //string dType = rField["DATA_TYPE"].ToString();
-        //
+   
         void panel4_MouseUp(object sender, MouseEventArgs e)
         {
             if (drawingLine == null && inLine)
@@ -859,7 +788,7 @@ namespace DrapPanel
                 mouseDownPoint = e.Location;
                 //记录控件的大小
                 GroupBox g = (GroupBox)sender;
-                g.Visible = false;
+                //g.Visible = false;
                 rect = g.Bounds;
 
             }
@@ -876,12 +805,12 @@ namespace DrapPanel
                 //设置线条的跟随变化
                 GroupBox g = (GroupBox)sender;
                 g.Location = rect.Location;
-                g.Visible = true;
+                g.Visible = false;
                 foreach (Line  l in lines)
                 {
                     if (l.srcg == g)
                     {
-                        l.StartPoint.X = g.Location.X + l.startPointtoSender.Y;
+                        l.StartPoint.X = g.Location.X + l.startPointtoSender.X;
                         l.StartPoint.Y = g.Location.Y + l.startPointtoSender.Y;
                     }
                     if (l.desg == g)
@@ -953,7 +882,131 @@ namespace DrapPanel
             panel4.Height = this.ClientSize.Height - panel1.Height;
         }
 
+        private void Form4_FormClosed(object sender, FormClosedEventArgs e)
+        {//保存数据
+            using (StreamWriter sw = new StreamWriter(@"Line.lst", false, Encoding.UTF8))
+            {
+                foreach (Line l in lines)
+                {
+                    sw.WriteLine(l.StartPoint.ToString()+"\b"+l.EndPoint.ToString()+"\b"+l.startPointtoSender.ToString()+"\b"+l.endPointtoSender.ToString()+"\b"+l.srcg.Name.ToString()+"\b"+l.desg.Name.ToString());
+                }
+            }
+            using (StreamWriter sw = new StreamWriter(@"Control.lst", false, Encoding.UTF8))
+            {
+                foreach (GroupBox grp in panel4.Controls)
+                {
+                    sw.WriteLine(grp.Name+"\b"+grp.Location);
+                }
+            }
+        }
+
+        private void loadData()
+        {
+            if (File.Exists(@"Control.lst"))
+            {
+                using (StreamReader sr = new StreamReader(@"Control.lst", Encoding.UTF8))
+                {
+                    string l = "";
+                    while ((l = sr.ReadLine()) != null)
+                    {
+                        string[] ls = l.Split('\b');
+                        GroupBox g = new GroupBox();
+                        g.Location = getPoint(ls[1]);
+                        addNewGroupBox(g, ls[0]);
+                    }
+                }
+            }
+            if (File.Exists(@"Line.lst"))
+            {
+                using (StreamReader sr = new StreamReader(@"Line.lst", Encoding.UTF8))
+                {
+                    string l = "";
+                    while ((l = sr.ReadLine()) != null)
+                    {
+                        string[] ls = l.Split('\b');
+                        Line line = new Line(getPoint(ls[0]));
+                        line.EndPoint = getPoint(ls[1]);
+                        line.startPointtoSender = getPoint(ls[2]);
+                        line.endPointtoSender = getPoint(ls[3]);
+                        foreach (GroupBox g in panel4.Controls)
+                        {
+                            if (g.Name == ls[4])
+                            {
+                                line.srcg = g;
+                            }
+                            if (g.Name == ls[5])
+                            {
+                                line.desg = g;
+                            }
+                        }
+                        lines.Add(line);
+                    }
+                }
+            }
+            
         
+        }
+        private Point getPoint(string x)
+        {
+            x = x.TrimStart('{').TrimEnd('}');
+            string[] xa = x.Split(',');
+            return new Point(int.Parse(xa[0].TrimStart("X=".ToCharArray())),int.Parse(xa[1].TrimStart("Y=".ToCharArray())));
+        }
+        private void  addNewGroupBox(GroupBox grp,string name)
+        {
+            DataTable tblFields = sqlconn.cn_Sql.GetSchema(SqlClientMetaDataCollectionNames.Columns);
+            //GroupBox grp = new GroupBox();
+            grp.Text = name;
+            grp.Name = name;
+            grp.Width = 150;
+            grp.Height = 300;
+            grp.MouseDown += new MouseEventHandler(control_MouseDown);
+            grp.MouseMove += new MouseEventHandler(control_MouseMove);
+            grp.MouseUp += new MouseEventHandler(control_MouseUp);
+            Panel panel = new Panel();
+
+            panel.MouseEnter += new EventHandler(panel_MouseEnter);
+            panel.MouseLeave += new EventHandler(panel_MouseLeave);
+            panel.MouseMove += new MouseEventHandler(panel_MouseMove);
+            panel.MouseClick += new MouseEventHandler(panel_MouseClick);
+            ListView lv = new ListView();
+            lv.View = View.Details;
+            lv.FullRowSelect = true;
+            lv.GridLines = true;
+            lv.Scrollable = true;
+            lv.MultiSelect = false;
+            lv.HoverSelection = true;
+
+            #region add data
+            lv.Columns.Add("字段名");
+            lv.Columns.Add("字段类型");
+            //lv.Columns.Add("列标题3", 100, HorizontalAlignment.Left);
+            //add list
+            lv.BeginUpdate();
+            //数据更新，UI暂时挂起，直到EndUpdate绘制控件，可以有效避免闪烁并大大提高加载速度
+            for (int i = 0; i < tblFields.Rows.Count; i++)
+            {
+                if (tblFields.Rows[i]["Table_Name"].ToString() ==name)
+                {
+                    ListViewItem lvi = new ListViewItem();
+                    // lvi.ImageIndex = i;     //通过与imageList绑定，显示imageList中第i项图标
+
+                    lvi.Text = tblFields.Rows[i]["Column_Name"].ToString();
+                    lvi.SubItems.Add(tblFields.Rows[i]["DATA_TYPE"].ToString());
+                    lv.Items.Add(lvi);
+
+                }
+            }
+            lv.EndUpdate();  //结束数据处理，UI界面一次性绘制。
+            #endregion
+            panel4.Controls.Add(grp);
+            grp.Controls.Add(panel);
+            panel.Dock = DockStyle.Fill;
+            panel.Controls.Add(lv);
+            lv.Width = panel.Width - 30;
+            lv.Height = panel.Height - 30;
+            lv.Location = new Point(15, 15);
+        }
 
        
     }
