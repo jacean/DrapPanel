@@ -63,7 +63,8 @@ namespace DrapPanel
             lv.MultiSelect = false;
             lv.Name = "lv_" + i.ToString();
             lv.Parent = grp;
-            lv.HoverSelection = true;
+            lv.SelectedIndexChanged += new EventHandler(lv_SelectedIndexChanged);
+            //lv.HoverSelection = true;
             #region add data
             lv.Columns.Add("列标题1", 100, HorizontalAlignment.Left);
             lv.Columns.Add("列标题2", 100, HorizontalAlignment.Left);
@@ -72,7 +73,7 @@ namespace DrapPanel
             //add list
             lv.BeginUpdate();   //数据更新，UI暂时挂起，直到EndUpdate绘制控件，可以有效避免闪烁并大大提高加载速度
 
-            for (int j = 0; j < 10; j++)   //添加10行数据
+            for (int j = 0; j < 20; j++)   //添加10行数据
             {
                 ListViewItem lvi = new ListViewItem();
 
@@ -94,6 +95,14 @@ namespace DrapPanel
             lv.MouseMove+=new MouseEventHandler(listView1_MouseMove);
             lv.MouseUp+=new MouseEventHandler(listView1_MouseUp);
             lv.MouseEnter+=new EventHandler(listView1_MouseEnter);
+        }
+
+        void lv_SelectedIndexChanged(object sender, EventArgs e)
+        {
+             //Rectangle vrec = ((ListView)sender).GetItemRect(((ListView)sender).SelectedItems[0].Index);
+             //   vrec.Offset(((ListView)sender).Location);
+             //   vrec.Offset(((ListView)sender).Parent.Location);
+             //   label2.Text = vrec.Location.ToString();
         }
 
         #region grpevent
@@ -222,16 +231,17 @@ namespace DrapPanel
         public bool isSelect = false;
         private void listView1_MouseDown(object sender, MouseEventArgs e)
         {
-            if (listView1.SelectedItems.Count > 0)
+            if (((ListView)sender).SelectedItems.Count > 0)
             {
                 isSelect = true;
                 Rectangle vrec = ((ListView)sender).GetItemRect(((ListView)sender).SelectedItems[0].Index);
                 vrec.Offset(((ListView)sender).Location);
                 vrec.Offset(((ListView)sender).Parent.Location);
-                //textBox1.Bounds = vrec;
-                //textBox1.Size = vrec.Size;
-                //textBox1.BringToFront();
-                //textBox1.Text = vrec.Location.ToString();
+                textBox1.Bounds = vrec;
+                textBox1.Size = vrec.Size;
+                textBox1.BringToFront();
+                textBox1.Text = vrec.Location.ToString();
+                label2.Text = vrec.Location.ToString();
 
             }
            
@@ -239,9 +249,12 @@ namespace DrapPanel
 
         private void listView1_MouseMove(object sender, MouseEventArgs e)
         {
-            if (isSelect)
-            { 
-                
+            if (((ListView)sender).SelectedItems.Count > 0)
+            {
+                Rectangle vrec = ((ListView)sender).GetItemRect(((ListView)sender).SelectedItems[0].Index);
+                vrec.Offset(((ListView)sender).Location);
+                //vrec.Offset(((ListView)sender).Parent.Location);
+                label2.Text = vrec.Location.ToString();
             }
         }
 

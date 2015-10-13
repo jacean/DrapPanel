@@ -37,6 +37,7 @@ namespace DrapPanel
                 comboBox1.Items.Add(dt.Rows[i][0].ToString());
 
             }
+            comboBox1.SelectedIndex = 0;
             panel4.Height=this.ClientSize.Height-panel1.Height;
             
 
@@ -172,15 +173,25 @@ namespace DrapPanel
             #endregion
 
             if (inLine)//在已有的线上
-            {//屏蔽选中线条移动事件
-                moveStart = e.Location;
-                label7.Text = moveLine.srcg.ToString();
-                label8.Text = moveLine.desg.ToString();
-                label9.Text = moveLine.startPointtoSender.ToString();
-                label10.Text = moveLine.endPointtoSender.ToString();
-                Form5 newform = new Form5(moveLine.srcg.Name.ToString(),moveLine.desg.Name.ToString());
-                newform.ShowDialog();
-                moveLine = null;/////////////防止弹出窗口后自身的up事件不执行
+            {//已屏蔽选中线条移动事件
+                if (isDelete)
+                {                    
+                    lines.Remove(moveLine);
+                    moveLine = null;
+                    this.Invalidate();
+                    this.Refresh();
+                }
+                else
+                {
+                    moveStart = e.Location;
+                    label7.Text = moveLine.srcg.ToString();
+                    label8.Text = moveLine.desg.ToString();
+                    label9.Text = moveLine.startPointtoSender.ToString();
+                    label10.Text = moveLine.endPointtoSender.ToString();
+                    Form5 newform = new Form5(moveLine.srcg.Name.ToString(), moveLine.desg.Name.ToString());
+                    newform.ShowDialog();
+                    moveLine = null;/////////////防止弹出窗口后自身的up事件不执行
+                }
             }
             else
             {//画面整体移动//怎么才能把控件画在画布上，这样调整画布的起始坐标就好了嘛
@@ -312,20 +323,17 @@ namespace DrapPanel
                 
                 /////////
                 foreach (Control cp in ct.Controls)
-                {//这里之后改
+                {
                     foreach (Control cl in cp.Controls)
                     {
                         cl.Width = cp.Width - 30;
                         cl.Height = cp.Height - 30;
-                    
+                        cl.Location = new Point(15, 15);
                     }
                   
                 }
 
             }
-            ///////////////////////////////
-            //移动线条////////////////////
-           
             foreach (Line line in lines)
             {
               
@@ -335,6 +343,12 @@ namespace DrapPanel
                 //line.EndPoint.X += (int)((float)(line.EndPoint.X - e.X) * (Mo - 1));
                 //line.EndPoint.Y += (int)((float)(line.EndPoint.Y - e.Y) * (Mo - 1));
 
+                //////////*****用选择项试试*****////////////////////
+
+
+
+
+                ////////////////////////////////////////////////////
                 //用相对坐标试下
                 //                
                 line.startPointtoSender.X += (int)((float)(line.startPointtoSender.X ) * (Mo - 1));
@@ -583,6 +597,8 @@ namespace DrapPanel
             public Point startPointtoSender = Point.Empty;
             public Point endPointtoSender = Point.Empty;
             public GroupBox desg;
+            public int srcg_itemIndex;
+            public int desg_itemIndex;
             public Line(Point startPoint)
             {
                 StartPoint = startPoint;
@@ -954,6 +970,14 @@ namespace DrapPanel
         }
         private void  addNewGroupBox(GroupBox grp,string name)
         {
+            foreach (GroupBox g in panel4.Controls)
+            {
+                if (g.Name == name)
+                {
+                    MessageBox.Show("该表已添加，请不要重复添加已造成混乱~");
+                    return;
+                }
+            }
             DataTable tblFields = sqlconn.cn_Sql.GetSchema(SqlClientMetaDataCollectionNames.Columns);
             //GroupBox grp = new GroupBox();
             grp.Text = name;
@@ -1008,6 +1032,64 @@ namespace DrapPanel
             lv.Location = new Point(15, 15);
         }
 
-       
+        public bool isDelete = false;
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (isDelete == false)
+            {
+                isDelete = true;
+                button2.Text = "选中线条以删除";
+            }
+            else
+            {
+                isDelete = false;
+                button2.Text = "delete(Line)";
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            
+            if (comboBox1.Text != "")
+            {
+                bool isExist = false;
+                string name = comboBox1.Text;
+                foreach (GroupBox g in panel4.Controls)
+                {
+                    if (g.Name == name)
+                    {
+                        List<Line> templines = new List<Line>();
+                        foreach (Line l in lines)
+                        {
+                            if (l.srcg == g||l.desg == g)
+                            {
+                                templines.Add(l);
+                                //lines.Remove(l);
+                                continue;
+                            }
+                            
+                        }
+                       lines=lines.Except(templines).ToList<Line>();
+                        isExist = true;
+                        panel4.Controls.Remove(g);
+                        this.Invalidate();
+                        this.Refresh();
+                    }
+                }
+                if (!isExist)
+                {
+                    MessageBox.Show("您要删除的这个表并没有在列表中，就不要枉费心机了哈哈哈哈哈");
+                }
+            }
+        }
+
+        public void getItemLocation(int index)
+        {
+            Rectangle vrec = ((ListView)sender).GetItemRect(index);
+            vrec.Offset(((ListView)sender).Location);//相对listview的坐标
+            vrec.Offset(((ListView)sender).Parent.Location);//相对panel的坐标
+            vrec.Offset(((ListView)sender).Parent.Parent.Location);//相对groupBox的坐标
+            return vrec.Location;
+        }
     }
 }
