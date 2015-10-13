@@ -141,6 +141,7 @@
     <Compile Include="Form2_back.Designer.cs">
       <DependentUpon>Form2_back.cs</DependentUpon>
     </Compile>
+    <Compile Include="sqlConn.cs" />
     <Compile Include="tableElement.cs">
       <SubType>UserControl</SubType>
     </Compile>

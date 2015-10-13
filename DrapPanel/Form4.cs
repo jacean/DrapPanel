@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Data.SqlClient;
 
 namespace DrapPanel
 {
@@ -15,7 +16,8 @@ namespace DrapPanel
         {
             InitializeComponent();
         }
-
+        sqlConn sqlconn = new sqlConn("Data Source=ELAB-SQ252L;Initial Catalog=student;Persist Security Info=True;User ID=ta;Password=elab2013","SQL");
+        
         private void Form4_Load(object sender, EventArgs e)
         {
            
@@ -25,31 +27,101 @@ namespace DrapPanel
             panel4.MouseUp += new MouseEventHandler(panel4_MouseUp);
             panel4.MouseWheel += new MouseEventHandler(panel4_MouseWheel);
             foreach(Control c in this.panel4.Controls)
-            {
-                if (c.GetType().ToString() == "System.Windows.Forms.GroupBox")
-                { 
-                    c.MouseDown+=new MouseEventHandler(control_MouseDown);
-                    c.MouseMove+=new MouseEventHandler(control_MouseMove);
-                    c.MouseUp+=new MouseEventHandler(control_MouseUp);
+            //{
+            //    if (c.GetType().ToString() == "System.Windows.Forms.GroupBox")
+            //    { 
+            //        c.MouseDown+=new MouseEventHandler(control_MouseDown);
+            //        c.MouseMove+=new MouseEventHandler(control_MouseMove);
+            //        c.MouseUp+=new MouseEventHandler(control_MouseUp);
 
-                    foreach (Control cc in c.Controls)
-                    {
-                        if (cc.GetType().ToString() == "System.Windows.Forms.Panel")
-                        {
-                            cc.MouseEnter += new EventHandler(panel_MouseEnter);
-                            cc.MouseLeave += new EventHandler(panel_MouseLeave);
-                            cc.MouseMove += new MouseEventHandler(panel_MouseMove);
-                            cc.MouseClick += new MouseEventHandler(panel_MouseClick);
-                        }
-                    }
-                }
-            }
+            //        foreach (Control cc in c.Controls)
+            //        {
+            //            if (cc.GetType().ToString() == "System.Windows.Forms.Panel")
+            //            {
+            //                cc.MouseEnter += new EventHandler(panel_MouseEnter);
+            //                cc.MouseLeave += new EventHandler(panel_MouseLeave);
+            //                cc.MouseMove += new MouseEventHandler(panel_MouseMove);
+            //                cc.MouseClick += new MouseEventHandler(panel_MouseClick);
+            //            }
+            //        }
+            //    }
+            //}
 
             this.DoubleBuffered = true;
             this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+            DataTable dt=sqlconn.getVector("SELECT Name FROM SysObjects Where XType='U' ORDER BY Name");
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                comboBox1.Items.Add(dt.Rows[i][0].ToString());
+
+            }
+            panel4.Height=this.ClientSize.Height-panel1.Height;
+            
 
         }
 
+        private void button1_Click(object sender, EventArgs e)
+        {
+            DataTable tblFields = sqlconn.cn_Sql.GetSchema(SqlClientMetaDataCollectionNames.Columns);
+            GroupBox grp = new GroupBox();
+            grp.Text = comboBox1.Text;
+            grp.Name = comboBox1.Text;
+            grp.Width = 150;
+            grp.Height = 300;
+            grp.MouseDown += new MouseEventHandler(control_MouseDown);
+            grp.MouseMove += new MouseEventHandler(control_MouseMove);
+            grp.MouseUp += new MouseEventHandler(control_MouseUp);
+            Panel panel = new Panel();
+            
+            panel.MouseEnter += new EventHandler(panel_MouseEnter);
+            panel.MouseLeave += new EventHandler(panel_MouseLeave);
+            panel.MouseMove += new MouseEventHandler(panel_MouseMove);
+            panel.MouseClick += new MouseEventHandler(panel_MouseClick);
+            ListView lv = new ListView();
+            lv.View = View.Details;
+            lv.FullRowSelect = true;
+            lv.GridLines = true;
+            lv.Scrollable = true;
+            lv.MultiSelect = false;
+            lv.HoverSelection = true;
+            
+            #region add data
+            lv.Columns.Add("字段名", 100, HorizontalAlignment.Left);
+            lv.Columns.Add("字段类型", 100, HorizontalAlignment.Left);
+            //lv.Columns.Add("列标题3", 100, HorizontalAlignment.Left);
+            //add list
+            lv.BeginUpdate();  
+             //数据更新，UI暂时挂起，直到EndUpdate绘制控件，可以有效避免闪烁并大大提高加载速度
+            for (int i = 0; i < tblFields.Rows.Count; i++)
+            {
+                if (tblFields.Rows[i]["Table_Name"].ToString() == comboBox1.Text)
+                {
+                        ListViewItem lvi = new ListViewItem();
+                        // lvi.ImageIndex = i;     //通过与imageList绑定，显示imageList中第i项图标
+
+                        lvi.Text = tblFields.Rows[i]["Column_Name"].ToString();
+                        lvi.SubItems.Add(tblFields.Rows[i]["DATA_TYPE"].ToString());
+                        lv.Items.Add(lvi);
+                   
+                }
+            }
+            lv.EndUpdate();  //结束数据处理，UI界面一次性绘制。
+            #endregion
+            panel4.Controls.Add(grp);
+            grp.Controls.Add(panel);
+            panel.Dock = DockStyle.Fill;
+            panel.Controls.Add(lv);
+            lv.Width = panel.Width - 30;
+            lv.Height = panel.Height - 30;
+            lv.Location = new Point(15, 15);
+            
+        }
+
+        //
+        //string tbl = rField["Table_Name"].ToString();
+        //string fld = rField["Column_Name"].ToString();
+        //string dType = rField["DATA_TYPE"].ToString();
+        //
         void panel4_MouseUp(object sender, MouseEventArgs e)
         {
             if (drawingLine == null && inLine)
@@ -75,7 +147,9 @@ namespace DrapPanel
         {
             int x = e.Location.X;
             int y = e.Location.Y;
-           
+
+            #region 判断鼠标是否选中线，如果选中的话inline=true，同时moveline被赋值和添加
+
             foreach (Line l in lines)
             {
                 if (l.StartPoint.X == l.EndPoint.X)
@@ -165,15 +239,19 @@ namespace DrapPanel
 
                 }
             }
+
+            #endregion
+
             if (inLine)//在已有的线上
-            {
+            {//屏蔽选中线条移动事件
                 moveStart = e.Location;
                 label7.Text = moveLine.srcg.ToString();
                 label8.Text = moveLine.desg.ToString();
                 label9.Text = moveLine.startPointtoSender.ToString();
                 label10.Text = moveLine.endPointtoSender.ToString();
-                //Form5 newform = new Form5();
-                //newform.ShowDialog();
+                Form5 newform = new Form5(moveLine.srcg.Name.ToString(),moveLine.desg.Name.ToString());
+                newform.ShowDialog();
+                moveLine = null;/////////////防止弹出窗口后自身的up事件不执行
             }
             else
             {//画面整体移动//怎么才能把控件画在画布上，这样调整画布的起始坐标就好了嘛
@@ -206,10 +284,10 @@ namespace DrapPanel
         /// <param name="e"></param>
         void panel4_MouseMove(object sender, MouseEventArgs e)
         {
-            
+            label1.Text = sender.ToString() + "\n" + getPointToForm((Control)sender, e.Location).ToString();
             if (startPaint && location == 0)
             {
-                label1.Text = sender.ToString() + "\n" + getPointToForm((Control)sender, e.Location).ToString();
+                
                 if (drawingLine != null)
                 {
                     label3.Text = "endPoint" + e.Location.ToString();
@@ -223,14 +301,16 @@ namespace DrapPanel
             }
             else if (e.Button == MouseButtons.Left)
             {
-                label1.Text = "正在移动线条";
+               
                 if (drawingLine == null && inLine)
                 {
+                    label1.Text = "选中线条";
                     //moveLine的坐标转换
-                    moveLine.StartPoint.X = tempLine.StartPoint.X + e.X - moveStart.X;
-                    moveLine.EndPoint.X = tempLine.EndPoint.X + e.X - moveStart.X;
-                    moveLine.StartPoint.Y = tempLine.StartPoint.Y + e.Y - moveStart.Y;
-                    moveLine.EndPoint.Y = tempLine.EndPoint.Y + e.Y - moveStart.Y;
+                    //屏蔽选中线条移动事件
+                    //moveLine.StartPoint.X = tempLine.StartPoint.X + e.X - moveStart.X;
+                    //moveLine.EndPoint.X = tempLine.EndPoint.X + e.X - moveStart.X;
+                    //moveLine.StartPoint.Y = tempLine.StartPoint.Y + e.Y - moveStart.Y;
+                    //moveLine.EndPoint.Y = tempLine.EndPoint.Y + e.Y - moveStart.Y;
                    
                     this.Invalidate();
                     this.Refresh();
@@ -272,6 +352,10 @@ namespace DrapPanel
 
         void panel4_MouseWheel(object sender, MouseEventArgs e)
         {
+            if (drawingLine != null||moveLine!=null)
+            {
+                return;
+            }
             float Mo = 0;
            
             if (e.Delta > 0)
@@ -297,14 +381,16 @@ namespace DrapPanel
                 ct.Left += (int)((float)(ct.Left - e.X) * (Mo - 1));
                 ct.Top += (int)((float)(ct.Top - e.Y) * (Mo - 1));
                 
-
                 /////////
                 foreach (Control cp in ct.Controls)
                 {//这里之后改
-                    listBox1.Width = cp.Width - 30;
-                    listBox1.Height = cp.Height-30;
-                    listBox2.Width = cp.Width-30;
-                    listBox2.Height = cp.Height-30;
+                    foreach (Control cl in cp.Controls)
+                    {
+                        cl.Width = cp.Width - 30;
+                        cl.Height = cp.Height - 30;
+                    
+                    }
+                  
                 }
 
             }
@@ -786,6 +872,27 @@ namespace DrapPanel
                 isDrag = true;
                 //重新设置rect的位置，跟随鼠标移动
                 rect.Location = getPointToForm((Control)sender,new Point(e.Location.X - mouseDownPoint.X, e.Location.Y - mouseDownPoint.Y));
+                
+                //设置线条的跟随变化
+                GroupBox g = (GroupBox)sender;
+                g.Location = rect.Location;
+                g.Visible = true;
+                foreach (Line  l in lines)
+                {
+                    if (l.srcg == g)
+                    {
+                        l.StartPoint.X = g.Location.X + l.startPointtoSender.Y;
+                        l.StartPoint.Y = g.Location.Y + l.startPointtoSender.Y;
+                    }
+                    if (l.desg == g)
+                    {
+                        l.EndPoint.X = g.Location.X + l.endPointtoSender.X;
+                        l.EndPoint.Y = g.Location.Y + l.endPointtoSender.Y;
+                    }
+                }
+
+
+                ////////////////////////
                 this.Refresh();
 
             }
@@ -840,6 +947,13 @@ namespace DrapPanel
            
             return this.PointToClient(control.PointToScreen(p));
         }
+
+        private void Form4_SizeChanged(object sender, EventArgs e)
+        {
+            panel4.Height = this.ClientSize.Height - panel1.Height;
+        }
+
+        
 
        
     }

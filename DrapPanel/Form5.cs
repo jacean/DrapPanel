@@ -24,6 +24,12 @@ namespace DrapPanel
         public string src = "";
         public string des = "";
 
+        private void Form5_Load(object sender, EventArgs e)
+        {
+            label1.Text = "源头:" + src;
+            label2.Text = "目标:" + des;
+        }
+
 
 
     }
