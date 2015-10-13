@@ -132,7 +132,7 @@ namespace DrapPanel
                 //重新设置rect的位置，跟随鼠标移动
                 rect.Location = getPointToForm(new Point(e.Location.X - mouseDownPoint.X, e.Location.Y - mouseDownPoint.Y));
                 this.Refresh();
-
+                label4.Text = rect.Location.ToString();
             }
         }
         void control_MouseUp(object sender, MouseEventArgs e)
@@ -235,14 +235,14 @@ namespace DrapPanel
             {
                 isSelect = true;
                 Rectangle vrec = ((ListView)sender).GetItemRect(((ListView)sender).SelectedItems[0].Index);
-                vrec.Offset(((ListView)sender).Location);
+                //vrec.Offset(((ListView)sender).Location);
                 vrec.Offset(((ListView)sender).Parent.Location);
                 textBox1.Bounds = vrec;
                 textBox1.Size = vrec.Size;
                 textBox1.BringToFront();
                 textBox1.Text = vrec.Location.ToString();
-                label2.Text = vrec.Location.ToString();
-
+                label2.Text = "a"+vrec.Location.ToString();
+                label3.Text = ((ListView)sender).SelectedItems[0].Index.ToString();
             }
            
         }
@@ -254,7 +254,7 @@ namespace DrapPanel
                 Rectangle vrec = ((ListView)sender).GetItemRect(((ListView)sender).SelectedItems[0].Index);
                 vrec.Offset(((ListView)sender).Location);
                 //vrec.Offset(((ListView)sender).Parent.Location);
-                label2.Text = vrec.Location.ToString();
+                //label2.Text = vrec.Location.ToString();
             }
         }
 

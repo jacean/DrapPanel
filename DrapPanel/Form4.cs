@@ -442,15 +442,55 @@ namespace DrapPanel
             {//结束panel
                 if (location == 2 && startPaint)
                 {
-
+                    Point itemPoint = Point.Empty;
+                    Point itemNextPoint = Point.Empty;
                     drawingLine.desg = (GroupBox)((Panel)sender).Parent;
+                    //
+                    
                     //
                     drawingLine.endPointtoSender.X = this.PointToClient(Control.MousePosition).X - drawingLine.desg.Location.X;
                     drawingLine.endPointtoSender.Y = this.PointToClient(Control.MousePosition).Y - drawingLine.desg.Location.Y;
                     //
+                    foreach(ListView lv in ((Panel)sender).Controls)
+                    {
+                        for(int i=0;i<lv.Items.Count-1;i++)
+                        {
+                           itemPoint= getItemLocation(lv,i);
+                           itemNextPoint = getItemLocation(lv,i+1);
+                           if (drawingLine.endPointtoSender.Y < itemNextPoint.Y && drawingLine.endPointtoSender.Y > itemPoint.Y)
+                           {
+                               drawingLine.desg_itemIndex = i;
+                               break;
+                           }
+                           if (i == lv.Items.Count - 2)
+                           {
+                               itemPoint = getItemLocation(lv, i + 1);
+                               int lastY = itemPoint.Y + lv.GetItemRect(i + 1).Height;
+                               //itemNextPoint = getItemLocation(lv, i + 1);
+                               if (drawingLine.endPointtoSender.Y < lastY && drawingLine.endPointtoSender.Y > itemPoint.Y)
+                               {
+                                   drawingLine.desg_itemIndex = i + 1;
+                                   break;
+                               }
+                           }
+                        }
+                        //如果所选点并没有选项则不开始花点
+                        if (drawingLine.desg_itemIndex == -1)
+                        {
+                            
+                            return;
+                        }
+                        else
+                            lv.Items[drawingLine.desg_itemIndex].Selected = true;
+                       
+                    }
+                    
+                    //
                     label6.Text = drawingLine.desg.ToString();
-                    drawPanel_MouseUp((object)this, this.PointToClient(Control.MousePosition));
-
+                    //将end坐标设为鼠标纵坐标所属项的中间位置
+                    //drawPanel_MouseUp((object)this, this.PointToClient(Control.MousePosition));
+                    drawPanel_MouseUp((object)this, new Point(this.PointToClient(Control.MousePosition).X,drawingLine.desg.Location.Y+((itemPoint.Y+itemNextPoint.Y)/2)));//
+                    //强行定义终点坐标，x不变，y是所属项中间
                 }
                 else
                 {
@@ -480,33 +520,33 @@ namespace DrapPanel
                
         }
 
-        void panel_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (mDown == false)
-            {//起始panel
-                mDown = true;
-                location = 1;
+        //void panel_MouseDown(object sender, MouseEventArgs e)
+        //{
+        //    if (mDown == false)
+        //    {//起始panel
+        //        mDown = true;
+        //        location = 1;
                 
-            }
-            else
-            {//结束panel
-                if (location == 2 && startPaint)
-                {
-                    //drawPanel_MouseUp((object)this, this.PointToClient(Control.MousePosition));
-                    drawPanel_MouseUp((object)panel4, this.PointToClient(Control.MousePosition));
-                }
-                mDown = false;
-                startPaint = false;
-                location = 0;
-            }
+        //    }
+        //    else
+        //    {//结束panel
+        //        if (location == 2 && startPaint)
+        //        {
+        //            //drawPanel_MouseUp((object)this, this.PointToClient(Control.MousePosition));
+        //            drawPanel_MouseUp((object)panel4, this.PointToClient(Control.MousePosition));
+        //        }
+        //        mDown = false;
+        //        startPaint = false;
+        //        location = 0;
+        //    }
                
             
-        }
+        //}
 
-        void panel_MouseUp(object sender, MouseEventArgs e)
-        {
+        //void panel_MouseUp(object sender, MouseEventArgs e)
+        //{
             
-        }
+        //}
 
         void panel_MouseMove(object sender, MouseEventArgs e)
         {//这里不用做功能
@@ -556,17 +596,63 @@ namespace DrapPanel
         private void panel_MouseLeave(object sender, EventArgs e)
         {
             if (mDown&&sender==src&&count==1)
-            { //开始化线，其实坐标为鼠标当前坐标
-                label4.Text = "离开src" + sender.ToString();
-                location = 0;
-                startPaint = true;
+            { 
                 //drawPanel_MouseDown((object)this, this.PointToClient(Control.MousePosition));
+
                 drawPanel_MouseDown((object)panel4, this.PointToClient(Control.MousePosition));
                 drawingLine.srcg = (GroupBox)((Panel)sender).Parent;
                 //
                 drawingLine.startPointtoSender.X = this.PointToClient(Control.MousePosition).X - drawingLine.srcg.Location.X;
                 drawingLine.startPointtoSender.Y = this.PointToClient(Control.MousePosition).Y - drawingLine.srcg.Location.Y;
-                //
+                //////////////////////强行设置起点坐标为所属项中间位置///////////
+                Point itemPoint = Point.Empty;
+                Point itemNextPoint = Point.Empty;
+                foreach (ListView lv in ((Panel)sender).Controls)
+                {
+                    for (int i = 0; i < lv.Items.Count-1; i++)
+                    {
+                        itemPoint = getItemLocation(lv, i);
+                        itemNextPoint = getItemLocation(lv, i + 1);
+                        if (drawingLine.startPointtoSender.Y < itemNextPoint.Y && drawingLine.startPointtoSender.Y > itemPoint.Y)
+                        {
+                            drawingLine.srcg_itemIndex = i;
+                            break;
+                        }
+                        if (i == lv.Items.Count - 2)
+                        {
+                            itemPoint = getItemLocation(lv, i+1);
+                            int lastY = itemPoint.Y + lv.GetItemRect(i + 1).Height;
+                            //itemNextPoint = getItemLocation(lv, i + 1);
+                            if (drawingLine.startPointtoSender.Y < lastY && drawingLine.startPointtoSender.Y > itemPoint.Y)
+                            {
+                                drawingLine.srcg_itemIndex = i+1;
+                                break;
+                            }
+                        }
+                    }
+
+                    //如果所选点并没有选项则不开始花点
+                    if (drawingLine.srcg_itemIndex == -1)
+                    {
+                        mDown = false;
+                        location = 0;
+                        src = null;
+                        count = 0;
+                        return;
+                    }
+                    else
+                        lv.Items[drawingLine.srcg_itemIndex].Selected = true;
+                }
+                //开始化线，其实坐标为鼠标当前坐标
+                label4.Text = "离开src" + sender.ToString();
+                location = 0;
+                startPaint = true;
+                label11.Text = drawingLine.startPointtoSender.ToString()+":"+ drawingLine.srcg_itemIndex.ToString();
+
+                //drawingLine.StartPoint = new Point(this.PointToClient(Control.MousePosition).X, drawingLine.srcg.Location.Y + ((itemPoint.Y + itemNextPoint.Y) / 2));
+                drawingLine.StartPoint = new Point(this.PointToClient(Control.MousePosition).X, drawingLine.srcg.Location.Y + ((itemPoint.Y ) / 2));
+               /////////////////////////////////////////////////////////////////
+
                 label6.Text = drawingLine.srcg.ToString();
             }
             if (startPaint && location == 2)
@@ -597,8 +683,8 @@ namespace DrapPanel
             public Point startPointtoSender = Point.Empty;
             public Point endPointtoSender = Point.Empty;
             public GroupBox desg;
-            public int srcg_itemIndex;
-            public int desg_itemIndex;
+            public int srcg_itemIndex=-1;
+            public int desg_itemIndex=-1;
             public Line(Point startPoint)
             {
                 StartPoint = startPoint;
@@ -691,6 +777,7 @@ namespace DrapPanel
             //int y=e.Location.Y;
             int x = e.X;
             int y = e.Y;
+            #region 判断是否在已有的线上
             foreach (Line l in lines)
             {
                 if (l.StartPoint.X == l.EndPoint.X)
@@ -753,6 +840,7 @@ namespace DrapPanel
 
                 }
             }
+            #endregion
             if (inLine)//不在已有的线上
             {
                 moveStart = e;
@@ -1026,6 +1114,8 @@ namespace DrapPanel
             panel4.Controls.Add(grp);
             grp.Controls.Add(panel);
             panel.Dock = DockStyle.Fill;
+            panel.BackColor = Color.Transparent;
+            //panel.Visible = false;
             panel.Controls.Add(lv);
             lv.Width = panel.Width - 30;
             lv.Height = panel.Height - 30;
@@ -1083,12 +1173,13 @@ namespace DrapPanel
             }
         }
 
-        public void getItemLocation(int index)
+        public Point getItemLocation(ListView sender,int index)
         {
-            Rectangle vrec = ((ListView)sender).GetItemRect(index);
-            vrec.Offset(((ListView)sender).Location);//相对listview的坐标
-            vrec.Offset(((ListView)sender).Parent.Location);//相对panel的坐标
-            vrec.Offset(((ListView)sender).Parent.Parent.Location);//相对groupBox的坐标
+            Rectangle vrec = sender.GetItemRect(index);//相对listview的坐标
+            //vrec.Offset(((ListView)sender).Location);//相对panel的坐标
+            vrec.Offset(((ListView)sender).Parent.Location);//相对groupBox的坐标
+            //vrec.Offset(((ListView)sender).Parent.Location);
+            //vrec.Offset(sender.Parent.Parent.Location);
             return vrec.Location;
         }
     }
