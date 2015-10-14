@@ -1085,11 +1085,11 @@ namespace DrapPanel
 
         public void getItemLocation(int index)
         {
-            Rectangle vrec = ((ListView)sender).GetItemRect(index);
-            vrec.Offset(((ListView)sender).Location);//相对listview的坐标
-            vrec.Offset(((ListView)sender).Parent.Location);//相对panel的坐标
-            vrec.Offset(((ListView)sender).Parent.Parent.Location);//相对groupBox的坐标
-            return vrec.Location;
+            //Rectangle vrec = ((ListView)sender).GetItemRect(index);
+            //vrec.Offset(((ListView)sender).Location);//相对listview的坐标
+            //vrec.Offset(((ListView)sender).Parent.Location);//相对panel的坐标
+            //vrec.Offset(((ListView)sender).Parent.Parent.Location);//相对groupBox的坐标
+            //return vrec.Location;
         }
     }
 }
