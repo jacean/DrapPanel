@@ -25,9 +25,17 @@ namespace DrapPanel
             grp = new GroupBox();
             createGrp(grp);
             this.Controls.Add(grp);
+            this.MouseMove += new MouseEventHandler(Form1_MouseMove);
        
            
             
+        }
+
+        void Form1_MouseMove(object sender, MouseEventArgs e)
+        {
+
+            label5.Text = Control.MousePosition.ToString();
+            label6.Text = this.PointToClient(Control.MousePosition).ToString();
         }
 
         void Form1_MouseWheel(object sender, MouseEventArgs e)
@@ -235,8 +243,10 @@ namespace DrapPanel
             {
                 isSelect = true;
                 Rectangle vrec = ((ListView)sender).GetItemRect(((ListView)sender).SelectedItems[0].Index);
-                //vrec.Offset(((ListView)sender).Location);
-                vrec.Offset(((ListView)sender).Parent.Location);
+                vrec.Offset(((ListView)sender).Location);
+                //vrec.Offset(((ListView)sender).Parent.Location);
+                //vrec.Location = this.PointToClient(vrec.Location);
+                textBox1.Location = vrec.Location;
                 textBox1.Bounds = vrec;
                 textBox1.Size = vrec.Size;
                 textBox1.BringToFront();

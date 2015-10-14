@@ -221,7 +221,7 @@
             this.panel4.Name = "panel4";
             this.panel4.Size = new System.Drawing.Size(898, 415);
             this.panel4.TabIndex = 5;
-            this.panel4.MouseLeave += new System.EventHandler(this.panel4_MouseLeave);
+           
             this.panel4.MouseEnter += new System.EventHandler(this.panel4_MouseEnter);
             // 
             // label11

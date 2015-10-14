@@ -417,10 +417,7 @@ namespace DrapPanel
             this.panel4.Focus();
         }
 
-        private void panel4_MouseLeave(object sender, EventArgs e)
-        {
-
-        }
+       
 
 
         bool mDown = false;
@@ -457,7 +454,7 @@ namespace DrapPanel
                         {
                            itemPoint= getItemLocation(lv,i);
                            itemNextPoint = getItemLocation(lv,i+1);
-                           if (drawingLine.endPointtoSender.Y < itemNextPoint.Y && drawingLine.endPointtoSender.Y > itemPoint.Y)
+                           if ((drawingLine.endPointtoSender.Y+drawingLine.desg.Location.Y) < itemNextPoint.Y && (drawingLine.endPointtoSender.Y+drawingLine.desg.Location.Y) > itemPoint.Y)
                            {
                                drawingLine.desg_itemIndex = i;
                                break;
@@ -466,8 +463,9 @@ namespace DrapPanel
                            {
                                itemPoint = getItemLocation(lv, i + 1);
                                int lastY = itemPoint.Y + lv.GetItemRect(i + 1).Height;
-                               //itemNextPoint = getItemLocation(lv, i + 1);
-                               if (drawingLine.endPointtoSender.Y < lastY && drawingLine.endPointtoSender.Y > itemPoint.Y)
+
+                               itemNextPoint = new Point(itemPoint.X,lastY);
+                               if ((drawingLine.endPointtoSender.Y + drawingLine.desg.Location.Y) < itemNextPoint.Y && (drawingLine.endPointtoSender.Y + drawingLine.desg.Location.Y) > itemPoint.Y)
                                {
                                    drawingLine.desg_itemIndex = i + 1;
                                    break;
@@ -489,7 +487,7 @@ namespace DrapPanel
                     label6.Text = drawingLine.desg.ToString();
                     //将end坐标设为鼠标纵坐标所属项的中间位置
                     //drawPanel_MouseUp((object)this, this.PointToClient(Control.MousePosition));
-                    drawPanel_MouseUp((object)this, new Point(this.PointToClient(Control.MousePosition).X,drawingLine.desg.Location.Y+((itemPoint.Y+itemNextPoint.Y)/2)));//
+                    endDrawingFunc((object)this, new Point(this.PointToClient(Control.MousePosition).X,((itemPoint.Y+itemNextPoint.Y)/2)));//
                     //强行定义终点坐标，x不变，y是所属项中间
                 }
                 else
@@ -599,7 +597,7 @@ namespace DrapPanel
             { 
                 //drawPanel_MouseDown((object)this, this.PointToClient(Control.MousePosition));
 
-                drawPanel_MouseDown((object)panel4, this.PointToClient(Control.MousePosition));
+                startDrawingFunc((object)panel4, this.PointToClient(Control.MousePosition));
                 drawingLine.srcg = (GroupBox)((Panel)sender).Parent;
                 //
                 drawingLine.startPointtoSender.X = this.PointToClient(Control.MousePosition).X - drawingLine.srcg.Location.X;
@@ -613,7 +611,7 @@ namespace DrapPanel
                     {
                         itemPoint = getItemLocation(lv, i);
                         itemNextPoint = getItemLocation(lv, i + 1);
-                        if (drawingLine.startPointtoSender.Y < itemNextPoint.Y && drawingLine.startPointtoSender.Y > itemPoint.Y)
+                        if ((drawingLine.startPointtoSender.Y+drawingLine.srcg.Location.Y) < itemNextPoint.Y && (drawingLine.startPointtoSender.Y+drawingLine.srcg.Location.Y) > itemPoint.Y)
                         {
                             drawingLine.srcg_itemIndex = i;
                             break;
@@ -621,9 +619,10 @@ namespace DrapPanel
                         if (i == lv.Items.Count - 2)
                         {
                             itemPoint = getItemLocation(lv, i+1);
-                            int lastY = itemPoint.Y + lv.GetItemRect(i + 1).Height;
+                            //int lastY = itemPoint.Y + lv.GetItemRect(i + 1).Height;
+                            itemNextPoint = new Point(itemPoint.X,itemPoint.Y + lv.GetItemRect(i + 1).Height);
                             //itemNextPoint = getItemLocation(lv, i + 1);
-                            if (drawingLine.startPointtoSender.Y < lastY && drawingLine.startPointtoSender.Y > itemPoint.Y)
+                        if ((drawingLine.startPointtoSender.Y+drawingLine.srcg.Location.Y) < itemNextPoint.Y && (drawingLine.startPointtoSender.Y+drawingLine.srcg.Location.Y) > itemPoint.Y)
                             {
                                 drawingLine.srcg_itemIndex = i+1;
                                 break;
@@ -650,7 +649,7 @@ namespace DrapPanel
                 label11.Text = drawingLine.startPointtoSender.ToString()+":"+ drawingLine.srcg_itemIndex.ToString();
 
                 //drawingLine.StartPoint = new Point(this.PointToClient(Control.MousePosition).X, drawingLine.srcg.Location.Y + ((itemPoint.Y + itemNextPoint.Y) / 2));
-                drawingLine.StartPoint = new Point(this.PointToClient(Control.MousePosition).X, drawingLine.srcg.Location.Y + ((itemPoint.Y ) / 2));
+                drawingLine.StartPoint = new Point(this.PointToClient(Control.MousePosition).X, ((itemPoint.Y +itemNextPoint.Y) / 2));
                /////////////////////////////////////////////////////////////////
 
                 label6.Text = drawingLine.srcg.ToString();
@@ -732,7 +731,7 @@ namespace DrapPanel
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void drawPanel_MouseUp(object sender, Point e)
+        void endDrawingFunc(object sender, Point e)
         {
             if (drawingLine == null && inLine)
             {
@@ -742,7 +741,7 @@ namespace DrapPanel
             }
             if (drawingLine == null) return;
             if (e == drawingLine.StartPoint)
-            {
+            {//现在好像也没用了这段
                 drawingLine.StartPoint = Point.Empty;
                 drawingLine.EndPoint = Point.Empty;
                 drawingLine = null;
@@ -771,7 +770,7 @@ namespace DrapPanel
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void drawPanel_MouseDown(object sender, Point e)
+        void startDrawingFunc(object sender, Point e)
         {
             //int x=e.Location.X;
             //int y=e.Location.Y;
@@ -1177,7 +1176,7 @@ namespace DrapPanel
         {
             Rectangle vrec = sender.GetItemRect(index);//相对listview的坐标
             //vrec.Offset(((ListView)sender).Location);//相对panel的坐标
-            vrec.Offset(((ListView)sender).Parent.Location);//相对groupBox的坐标
+            vrec.Offset(((ListView)sender).Parent.Parent.Parent.Location);//相对panel4的坐标
             //vrec.Offset(((ListView)sender).Parent.Location);
             //vrec.Offset(sender.Parent.Parent.Location);
             return vrec.Location;
