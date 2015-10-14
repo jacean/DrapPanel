@@ -243,7 +243,7 @@ namespace DrapPanel
             {
                 isSelect = true;
                 Rectangle vrec = ((ListView)sender).GetItemRect(((ListView)sender).SelectedItems[0].Index);
-                vrec.Offset(((ListView)sender).Location);
+                //vrec.Offset(((ListView)sender).Location);
                 //vrec.Offset(((ListView)sender).Parent.Location);
                 //vrec.Location = this.PointToClient(vrec.Location);
                 textBox1.Location = vrec.Location;

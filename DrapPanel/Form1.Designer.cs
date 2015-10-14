@@ -62,7 +62,7 @@
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.panel1);
-            this.groupBox1.Location = new System.Drawing.Point(441, 77);
+            this.groupBox1.Location = new System.Drawing.Point(607, 74);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(298, 231);
             this.groupBox1.TabIndex = 4;
@@ -83,7 +83,7 @@
             this.listView1.GridLines = true;
             this.listView1.HideSelection = false;
             this.listView1.LabelEdit = true;
-            this.listView1.Location = new System.Drawing.Point(113, 94);
+            this.listView1.Location = new System.Drawing.Point(273, 100);
             this.listView1.Name = "listView1";
             this.listView1.Size = new System.Drawing.Size(292, 205);
             this.listView1.TabIndex = 5;
