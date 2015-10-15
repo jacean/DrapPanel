@@ -62,8 +62,9 @@
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.panel1);
-            this.groupBox1.Location = new System.Drawing.Point(607, 74);
+            this.groupBox1.Location = new System.Drawing.Point(148, 39);
             this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(0);
             this.groupBox1.Size = new System.Drawing.Size(298, 231);
             this.groupBox1.TabIndex = 4;
             this.groupBox1.TabStop = false;
@@ -72,9 +73,10 @@
             // panel1
             // 
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel1.Location = new System.Drawing.Point(3, 17);
+            this.panel1.Location = new System.Drawing.Point(0, 14);
+            this.panel1.Margin = new System.Windows.Forms.Padding(0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(292, 211);
+            this.panel1.Size = new System.Drawing.Size(298, 217);
             this.panel1.TabIndex = 6;
             // 
             // listView1
