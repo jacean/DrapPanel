@@ -10,38 +10,54 @@ using System.Data.SqlClient;
 using System.IO;
 namespace DrapPanel
 {
-    public partial class Form4 : Form
+    public partial class MainForm : Form
     {
-        public Form4()
+        public MainForm()
         {
             InitializeComponent();
         }
-        //sqlConn sqlconn = new sqlConn("Data Source=ELAB-SQ252L;Initial Catalog=student;Persist Security Info=True;User ID=ta;Password=elab2013","SQL");
-       sqlConn sqlconn = new sqlConn( "Data Source=JACEAN-PC\\SQLEXPRESS;Initial Catalog=student;Integrated Security=True","SQL");
+        public ToolTip tip = new ToolTip();
+        string sqltxt = "";
+        sqlConn sqlconn;
+       //sqlConn sqlconn = new sqlConn( "Data Source=JACEAN-PC\\SQLEXPRESS;Initial Catalog=student;Integrated Security=True","SQL");
+        
+
         private void Form4_Load(object sender, EventArgs e)
         {
-            label13.Parent = this;
-            label13.BringToFront();
+            label1.Text = "";
+            label11.Text = "";
+            label12.Text = "";
             panel4.Paint += new PaintEventHandler(panel4_Paint);
             panel4.MouseMove += new MouseEventHandler(panel4_MouseMove);
             panel4.MouseDown += new MouseEventHandler(panel4_MouseDown);
             panel4.MouseUp += new MouseEventHandler(panel4_MouseUp);
             panel4.MouseWheel += new MouseEventHandler(panel4_MouseWheel);
 
+           
             loadData();
 
+            
+            panel4.Height=this.ClientSize.Height-panel1.Height;
+
+            tip.IsBalloon = true;
+            
+
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            sqltxt = textBox1.Text;
+            //sqltxt="Data Source=ELAB-SQ252L;Initial Catalog=student;Persist Security Info=True;User ID=ta;Password=elab2013";
+            sqlconn = new sqlConn(sqltxt, "SQL");
             this.DoubleBuffered = true;
             this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
-            DataTable dt=sqlconn.getVector("SELECT Name FROM SysObjects Where XType='U' ORDER BY Name");
+            DataTable dt = sqlconn.getVector("SELECT Name FROM SysObjects Where XType='U' ORDER BY Name");
             for (int i = 0; i < dt.Rows.Count; i++)
             {
                 comboBox1.Items.Add(dt.Rows[i][0].ToString());
 
             }
             comboBox1.SelectedIndex = 0;
-            panel4.Height=this.ClientSize.Height-panel1.Height;
-            
-
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -49,6 +65,7 @@ namespace DrapPanel
             
             GroupBox grp = new GroupBox();
             addNewGroupBox(grp,comboBox1.Text);
+
             
         }
 
@@ -60,14 +77,7 @@ namespace DrapPanel
                 inLine = false;
                 moveLine = null; tempLine = null;
             }
-            if (lines.Count > 0)
-            {
-                listBox1.Items.Clear();
-                foreach (Line l in lines)
-                {
-                    listBox1.Items.Add(l.StartPoint.ToString() + "," + l.EndPoint.ToString());
-                }
-            }
+            updateListBox();
             if (isMoveForm)
             {
                 isMoveForm = false;
@@ -185,12 +195,28 @@ namespace DrapPanel
                 else
                 {
                     moveStart = e.Location;
-                    label7.Text = moveLine.srcg.ToString();
-                    label8.Text = moveLine.desg.ToString();
-                    //label9.Text = moveLine.startPointtoSender.ToString();
-                    //label10.Text = moveLine.endPointtoSender.ToString();
-                    Form5 newform = new Form5(moveLine.srcg.Name.ToString(), moveLine.desg.Name.ToString());
-                    newform.ShowDialog();
+                   
+                   
+                    string showText="";
+                    showText="起点:"+moveLine.srcg.Name+"->";
+                    
+                     foreach (Control cp in moveLine.srcg.Controls)
+                    {
+                        foreach (ListView lv in cp.Controls)
+                        {
+                            showText+=lv.Items[moveLine.srcg_itemIndex].Text+"\n";
+                        }
+                    }
+                    showText+="终点:"+moveLine.desg.Name+"->";
+                     foreach (Control cp in moveLine.desg.Controls)
+                    {
+                        foreach (ListView lv in cp.Controls)
+                        {
+                            showText+=lv.Items[moveLine.desg_itemIndex].Text+"\n";
+                        }
+                    }
+                    tip.SetToolTip(panel4,showText);
+                    tip.ShowAlways = true;
                     moveLine = null;/////////////防止弹出窗口后自身的up事件不执行
                 }
             }
@@ -225,13 +251,19 @@ namespace DrapPanel
         /// <param name="e"></param>
         void panel4_MouseMove(object sender, MouseEventArgs e)
         {
-            label1.Text = sender.ToString() + "\n" + getPointToForm((Control)sender, e.Location).ToString();
+            label1.Text = getPointToForm((Control)sender, e.Location).ToString();
+            if (!inLine)
+            {
+                tip = new ToolTip();
+                tip.IsBalloon = true;
+                tip.Hide(this);
+            }
             if (startPaint && location == 0)
             {
                 
                 if (drawingLine != null)
                 {
-                    label3.Text = "endPoint" + e.Location.ToString();
+                   
                     drawingLine.EndPoint = e.Location;
                   
                     //drawPanel.Invalidate();
@@ -240,25 +272,7 @@ namespace DrapPanel
                     this.Refresh();
                 }
             }
-            else if (e.Button == MouseButtons.Left)
-            {
-               
-                if (drawingLine == null && inLine)
-                {
-                    label1.Text = "选中线条";
-                    //moveLine的坐标转换
-                    //屏蔽选中线条移动事件
-                    //moveLine.StartPoint.X = tempLine.StartPoint.X + e.X - moveStart.X;
-                    //moveLine.EndPoint.X = tempLine.EndPoint.X + e.X - moveStart.X;
-                    //moveLine.StartPoint.Y = tempLine.StartPoint.Y + e.Y - moveStart.Y;
-                    //moveLine.EndPoint.Y = tempLine.EndPoint.Y + e.Y - moveStart.Y;
-                   
-                    this.Invalidate();
-                    this.Refresh();
-                    //splitContainer1.Panel1.Invalidate();
-                }
 
-            }
 
             if (isMoveForm)
             {
@@ -288,144 +302,147 @@ namespace DrapPanel
                 this.Refresh();
             }
 
-
+          
         }
 
         void panel4_MouseWheel(object sender, MouseEventArgs e)
         {
-            if (drawingLine != null||moveLine!=null)
+            if (panel4.Focus())
             {
-                return;
-            }
-            float Mo = 0;
-           
-            if (e.Delta > 0)
-            {
-                Mo = 1.02f;
-              
-               
-            }
-            else if (e.Delta < 0)
-            {
-                Mo = 0.98f;
-            }
-            #region 移动控件
-            foreach (Control ct in this.panel4.Controls)
-            {//看成是点的移动
-                ct.Width += (int)((Mo-1)*(float)ct.Width);
-                ct.Height+= (int)((Mo-1)*(float)ct.Height);
-
-                //ct.Left -=  (int)((Mo-1)* ((float)ct.Width/2 ));//以自己中心为原点放大
-                //ct.Left += (int)(((ct.Left + ct.Width/2) - e.X) * (float)(Mo - 1));//一鼠标为中心改变缩放偏移量
-                //ct.Top -= (int)((Mo-1) * ((float)ct.Height/2));
-                //ct.Top += (int)(((ct.Top + ct.Height/2) - e.Y) * (float)(Mo - 1));
-                ct.Left += (int)((float)(ct.Left - e.X) * (Mo - 1));
-                ct.Top += (int)((float)(ct.Top - e.Y) * (Mo - 1));
-                
-                /////////
-                foreach (Control cp in ct.Controls)
+                if (drawingLine != null || moveLine != null)
                 {
-                    foreach (Control cl in cp.Controls)
+                    return;
+                }
+                float Mo = 0;
+
+                if (e.Delta > 0)
+                {
+                    Mo = 1.02f;
+
+
+                }
+                else if (e.Delta < 0)
+                {
+                    Mo = 0.98f;
+                }
+                #region 移动控件
+                foreach (Control ct in this.panel4.Controls)
+                {//看成是点的移动
+                    ct.Width += (int)((Mo - 1) * (float)ct.Width);
+                    ct.Height += (int)((Mo - 1) * (float)ct.Height);
+
+                    //ct.Left -=  (int)((Mo-1)* ((float)ct.Width/2 ));//以自己中心为原点放大
+                    //ct.Left += (int)(((ct.Left + ct.Width/2) - e.X) * (float)(Mo - 1));//一鼠标为中心改变缩放偏移量
+                    //ct.Top -= (int)((Mo-1) * ((float)ct.Height/2));
+                    //ct.Top += (int)(((ct.Top + ct.Height/2) - e.Y) * (float)(Mo - 1));
+                    ct.Left += (int)((float)(ct.Left - e.X) * (Mo - 1));
+                    ct.Top += (int)((float)(ct.Top - e.Y) * (Mo - 1));
+
+                    /////////
+                    foreach (Control cp in ct.Controls)
                     {
-                        cl.Width = cp.Width - 30;
-                        cl.Height = cp.Height - 30;
-                        cl.Location = new Point(15, 15);
+                        foreach (Control cl in cp.Controls)
+                        {
+                            cl.Width = cp.Width - 30;
+                            cl.Height = cp.Height - 30;
+                            cl.Location = new Point(15, 15);
+                        }
+
                     }
-                  
+
                 }
 
-            }
-
-            #endregion
-            Point itemstartPoint = Point.Empty;
-            Point itemendPoint = Point.Empty;
-            int startHeight = 0;
-            int endHeight = 0;
-            GroupBox srcg = null;
-            GroupBox desg = null;
-
-            foreach (Line line in lines)
-            {
-                #region 旧版
-                //线条的起始坐标转换,这个有误差，且越积累越大
-                //line.StartPoint.X += (int)((float)(line.StartPoint.X - e.X) * (Mo - 1));
-                //line.StartPoint.Y += (int)((float)(line.StartPoint.Y - e.Y) * (Mo - 1));
-                //line.EndPoint.X += (int)((float)(line.EndPoint.X - e.X) * (Mo - 1));
-                //line.EndPoint.Y += (int)((float)(line.EndPoint.Y - e.Y) * (Mo - 1));
-                ////////////////////////////////////////////////////
-                //用相对坐标试下
-                //                
-                //line.startPointtoSender.X += (int)((float)(line.startPointtoSender.X ) * (Mo - 1));
-                //line.startPointtoSender.Y += (int)((float)(line.startPointtoSender.Y ) * (Mo - 1));
-                //line.endPointtoSender.X += (int)((float)(line.endPointtoSender.X) * (Mo - 1));
-                //line.endPointtoSender.Y += (int)((float)(line.endPointtoSender.Y ) * (Mo - 1));
-                //line.StartPoint = new Point(line.srcg.Location.X + line.startPointtoSender.X, line.srcg.Location.Y + line.startPointtoSender.Y);
-                //line.EndPoint = new Point(line.desg.Location.X + line.endPointtoSender.X, line.desg.Location.Y + line.endPointtoSender.Y);
                 #endregion
-                //////////*****用选择项试试*****////////////////////
-                if (line.dsX_src > 0)
+                Point itemstartPoint = Point.Empty;
+                Point itemendPoint = Point.Empty;
+                int startHeight = 0;
+                int endHeight = 0;
+                GroupBox srcg = null;
+                GroupBox desg = null;
+
+                foreach (Line line in lines)
                 {
-                    line.dsX_src = line.srcg.Width;
-                }
-                if (line.dsX_des > 0)
-                {
-                    line.dsX_des = line.desg.Width;
-                }
-                srcg = (GroupBox)line.srcg;
-                desg = (GroupBox)line.desg;
-                foreach (Control cp in srcg.Controls)
-                {
-                    foreach (ListView lv in cp.Controls)
+                    #region 旧版
+                    //线条的起始坐标转换,这个有误差，且越积累越大
+                    //line.StartPoint.X += (int)((float)(line.StartPoint.X - e.X) * (Mo - 1));
+                    //line.StartPoint.Y += (int)((float)(line.StartPoint.Y - e.Y) * (Mo - 1));
+                    //line.EndPoint.X += (int)((float)(line.EndPoint.X - e.X) * (Mo - 1));
+                    //line.EndPoint.Y += (int)((float)(line.EndPoint.Y - e.Y) * (Mo - 1));
+                    ////////////////////////////////////////////////////
+                    //用相对坐标试下
+                    //                
+                    //line.startPointtoSender.X += (int)((float)(line.startPointtoSender.X ) * (Mo - 1));
+                    //line.startPointtoSender.Y += (int)((float)(line.startPointtoSender.Y ) * (Mo - 1));
+                    //line.endPointtoSender.X += (int)((float)(line.endPointtoSender.X) * (Mo - 1));
+                    //line.endPointtoSender.Y += (int)((float)(line.endPointtoSender.Y ) * (Mo - 1));
+                    //line.StartPoint = new Point(line.srcg.Location.X + line.startPointtoSender.X, line.srcg.Location.Y + line.startPointtoSender.Y);
+                    //line.EndPoint = new Point(line.desg.Location.X + line.endPointtoSender.X, line.desg.Location.Y + line.endPointtoSender.Y);
+                    #endregion
+                    //////////*****用选择项试试*****////////////////////
+                    if (line.dsX_src > 0)
                     {
-                        
+                        line.dsX_src = line.srcg.Width;
+                    }
+                    if (line.dsX_des > 0)
+                    {
+                        line.dsX_des = line.desg.Width;
+                    }
+                    srcg = (GroupBox)line.srcg;
+                    desg = (GroupBox)line.desg;
+                    foreach (Control cp in srcg.Controls)
+                    {
+                        foreach (ListView lv in cp.Controls)
+                        {
+
                             itemstartPoint = getItemLocation(lv, line.srcg_itemIndex);
                             startHeight = lv.GetItemRect(line.srcg_itemIndex).Height;
-                        if(itemstartPoint.Y<srcg.Location.Y+15+14||itemstartPoint.Y>srcg.Location.Y+srcg.Height-15)//panel对groupbox的偏移量为0,14，
-                        {
-                        line.src_isShow=false;
+                            if (itemstartPoint.Y < 15 + 14 + 16 || itemstartPoint.Y > srcg.Height - 15)//panel对groupbox的偏移量为0,14，标题高度为16
+                            {
+                                line.src_isShow = false;
+                            }
+                            else
+                            {
+                                line.src_isShow = true;
+                            }
+                            //itemstartPoint.Y应该变化
+                            line.StartPoint.Y = srcg.Location.Y + itemstartPoint.Y + startHeight / 2;
+
                         }
-                        else
-                        {
-                            line.src_isShow = true;
-                        }
-                        //itemstartPoint.Y应该变化
-                        line.StartPoint.Y = itemstartPoint.Y + startHeight / 2;
-                        
+
                     }
 
-                }
-                
-                line.StartPoint.X = line.srcg.Location.X + line.dsX_src;
+                    line.StartPoint.X = line.srcg.Location.X + line.dsX_src;
 
-                foreach (Control cp in desg.Controls)
-                {
-                    foreach (ListView lv in cp.Controls)
+                    foreach (Control cp in desg.Controls)
                     {
-
-                        itemendPoint = getItemLocation(lv, line.desg_itemIndex);
-                        endHeight = lv.GetItemRect(line.desg_itemIndex).Height;
-                        if (itemendPoint.Y < desg.Location.Y + 15+14+16||itemendPoint.Y>desg.Location.Y+desg.Height-15)
+                        foreach (ListView lv in cp.Controls)
                         {
-                            line.des_isShow = false;
-                        }
-                        else
-                        {
-                            line.des_isShow = true;
-                        }
 
-                        line.EndPoint.Y = itemendPoint.Y + endHeight / 2;
+                            itemendPoint = getItemLocation(lv, line.desg_itemIndex);
+                            endHeight = lv.GetItemRect(line.desg_itemIndex).Height;
+                            if (itemendPoint.Y < 15 + 14 + 16 || itemendPoint.Y > desg.Height - 15)
+                            {
+                                line.des_isShow = false;
+                            }
+                            else
+                            {
+                                line.des_isShow = true;
+                            }
+
+                            line.EndPoint.Y = desg.Location.Y + itemendPoint.Y + endHeight / 2;
+
+                        }
 
                     }
+                    line.EndPoint.X = line.desg.Location.X + line.dsX_des;
+
 
                 }
-                line.EndPoint.X = line.desg.Location.X + line.dsX_des;
 
-               
+
+                this.Invalidate();
+                this.Refresh();
             }
-           
-           
-            this.Invalidate();
-            this.Refresh();
         }
 
         /// <summary>
@@ -474,11 +491,8 @@ namespace DrapPanel
                 }
             }
 
+            updateListBox();
 
-            //if (rec != Rectangle.Empty)
-            //{
-            //    e.Graphics.DrawRectangle(new Pen(this.BackColor,2), rec);
-            //}
 
         }
 
@@ -528,19 +542,7 @@ namespace DrapPanel
                         }
                       
                     }
-                    ////////*****************************************
-                    if (selectedIndex != -1)
-                    {
-                        rec = lv.GetItemRect(selectedIndex);
-                        //rec.X = 0;
-                        rec.Offset(lv.Parent.Parent.Location);
-                        label13.Location = rec.Location;
-                        label13.Text = selectedIndex.ToString() + itemPoint.ToString() + "-" + itemNextPoint.ToString();
-                    }
-                    else
-                    {
-                        label13.Text = (gg.PointToClient(Control.MousePosition)).ToString();
-                    }
+                   
                 }
                 //如果所选点并没有选项则不开始画点或结束
                 if (selectedIndex != -1)
@@ -559,14 +561,11 @@ namespace DrapPanel
                         drawingLine.srcg_itemIndex = selectedIndex;
                         //
                         drawingLine.dsX_src= dsX;
-                        //drawingLine.startPointtoSender.X = this.PointToClient(Control.MousePosition).X - drawingLine.srcg.Location.X;
-                        //drawingLine.startPointtoSender.Y = this.PointToClient(Control.MousePosition).Y - drawingLine.srcg.Location.Y;
-                        //开始化线，其实坐标为鼠标当前坐标
-                        label4.Text = "选中了项开始画点了" + sender.ToString();
+                     
                        
-                       // label11.Text ="相对父容器坐标"+ drawingLine.startPointtoSender.ToString() + ":" + drawingLine.srcg_itemIndex.ToString();
+                        label11.Text ="选中开始项:" + drawingLine.srcg_itemIndex.ToString();
                        
-                        label6.Text = drawingLine.srcg.ToString();
+                      
                     }
                     else
                     {//结束panel
@@ -577,7 +576,7 @@ namespace DrapPanel
                             drawingLine.desg = (GroupBox)(((Panel)sender).Parent);
                             drawingLine.desg_itemIndex = selectedIndex;
                             drawingLine.dsX_des = dsX;
-                            label6.Text = drawingLine.desg.ToString();
+                           
                             endDrawingFunc(new Point(gg.Location.X+dsX, (itemPoint.Y + height / 2+gg.Location.Y)));//
                            
                            
@@ -601,57 +600,23 @@ namespace DrapPanel
           
                         src = null;
                         des = null;
-                        label2.Text = "";
-                        label3.Text = "";
-                        label4.Text = "";
-                        label5.Text = "";
-
+                      
                     }
                     this.Refresh();
                 }
             
         }
 
-        //void panel_MouseDown(object sender, MouseEventArgs e)
-        //{
-        //    if (mDown == false)
-        //    {//起始panel
-        //        mDown = true;
-        //        location = 1;
-                
-        //    }
-        //    else
-        //    {//结束panel
-        //        if (location == 2 && startPaint)
-        //        {
-        //            //drawPanel_MouseUp((object)this, this.PointToClient(Control.MousePosition));
-        //            drawPanel_MouseUp((object)panel4, this.PointToClient(Control.MousePosition));
-        //        }
-        //        mDown = false;
-        //        startPaint = false;
-        //        location = 0;
-        //    }
-               
-            
-        //}
-
-        //void panel_MouseUp(object sender, MouseEventArgs e)
-        //{
-            
-        //}
 
         void panel_MouseMove(object sender, MouseEventArgs e)
-        {//这里不用做功能
+        {
             if (drawingLine != null)
             {
-                if (startPaint && location == 1)
-                {
-                    label1.Text = "在src里徘徊，";
-                }
+               
                 if (startPaint && location == 2)
                 {
-                
-                    label3.Text = "进入了des正在画endPoint" + e.Location.ToString();
+
+
                     drawingLine.EndPoint = this.getPointToForm((Control)sender, e.Location);
                 }
                 this.Invalidate();
@@ -666,14 +631,14 @@ namespace DrapPanel
             if (startPaint && src != des)
             {
                 
-                label5.Text = "进入了des" + sender.ToString();
+             
                 location = 2;
                 drawingLine.EndPoint = this.PointToClient(Control.MousePosition);
             }
             if (startPaint && src == des)
             {
             
-                label5.Text = "回到了src" + sender.ToString();
+              
                 location = 1;
             }
         }
@@ -683,7 +648,7 @@ namespace DrapPanel
             if (mDown&&location==1)
             {
                 location = 0;
-                label5.Text = "还在画线，不过在窗体上转悠。。。";
+              
             }
             if (startPaint && location == 2)
             {
@@ -790,14 +755,7 @@ namespace DrapPanel
                 drawingLine = null;
             }
 
-            if (lines.Count > 0)
-            {
-                listBox1.Items.Clear();
-                foreach (Line l in lines)
-                {
-                    listBox1.Items.Add(l.StartPoint.ToString() + "," + l.EndPoint.ToString());
-                }
-            }
+            updateListBox();
 
             mDown = false;
         }
@@ -876,15 +834,8 @@ namespace DrapPanel
                 }
             }
             #endregion
-            //if (inLine)//不在已有的线上
-            //{
-            //    moveStart = e;
-
-            //}
-            //else 
-            //{
-
-                label2.Text = "startPoint" + e.ToString();
+         
+              
                 drawingLine = new Line(e);
                 
                 lines.Add(drawingLine);
@@ -936,7 +887,7 @@ namespace DrapPanel
 
         void control_MouseMove(object sender, MouseEventArgs e)
         {
-            label1.Text = sender.ToString()+"\n"+getPointToForm((Control)sender, e.Location).ToString();
+            label1.Text = getPointToForm((Control)sender, e.Location).ToString();
             if (e.Button == MouseButtons.Left)
             {
                 isDrag = true;
@@ -946,7 +897,7 @@ namespace DrapPanel
                 //设置线条的跟随变化
                 GroupBox g = (GroupBox)sender;
                 g.Location = rect.Location;
-                g.Visible = false;
+                
 
                 Point itemstartPoint = Point.Empty;
                 Point itemendPoint = Point.Empty;
@@ -969,7 +920,7 @@ namespace DrapPanel
 
                                 itemstartPoint = getItemLocation(lv, line.srcg_itemIndex);
                                 startHeight = lv.GetItemRect(line.srcg_itemIndex).Height;
-                                if (itemstartPoint.Y < srcg.Location.Y + 15+14+16|| itemstartPoint.Y > srcg.Location.Y + srcg.Height - 15)
+                                if (itemstartPoint.Y < 15+14+16|| itemstartPoint.Y >  srcg.Height - 15)
                                 {
                                     line.src_isShow = false;
                                 }
@@ -977,7 +928,7 @@ namespace DrapPanel
                                 {
                                     line.src_isShow = true;
                                 }
-                                line.StartPoint.Y = itemstartPoint.Y + startHeight / 2;
+                                line.StartPoint.Y =srcg.Location.Y+ itemstartPoint.Y + startHeight / 2;
 
                             }
 
@@ -997,7 +948,7 @@ namespace DrapPanel
 
                                 itemendPoint = getItemLocation(lv, line.desg_itemIndex);
                                 endHeight = lv.GetItemRect(line.desg_itemIndex).Height;
-                                if (itemendPoint.Y < desg.Location.Y + 15+14+16 || itemendPoint.Y > desg.Location.Y + desg.Height - 15)
+                                if (itemendPoint.Y <  15+14+16 || itemendPoint.Y > desg.Height - 15)
                                 {
                                     line.des_isShow = false;
                                 }
@@ -1006,7 +957,7 @@ namespace DrapPanel
                                     line.des_isShow = true;
                                 }
 
-                                line.EndPoint.Y = itemendPoint.Y + endHeight / 2;
+                                line.EndPoint.Y =desg.Location.Y+ itemendPoint.Y + endHeight / 2;
 
                             }
 
@@ -1047,23 +998,7 @@ namespace DrapPanel
             rect = Rectangle.Empty;
             isDrag = false;
         }
-        //窗体重绘,该部分移动至画线那里,如果单独需的话把这部分加入控件事件里
-        //private void FormDrag_Paint(object sender, PaintEventArgs e)
-        //{
-        //    if (rect != Rectangle.Empty)
-        //    {
-        //        if (isDrag)
-        //        {//画一个和Control一样大小的黑框
-        //            e.Graphics.DrawRectangle(Pens.Black, rect);
-        //        }
-        //        else
-        //        {
-        //            e.Graphics.DrawRectangle(new Pen(this.BackColor), rect);
-        //        }
-        //    }
-        //}
-        //把相对与control控件的坐标，转换成相对于窗体的坐标。
-        
+     
 
         #endregion
         
@@ -1089,6 +1024,7 @@ namespace DrapPanel
             }
             using (StreamWriter sw = new StreamWriter(@"Control.lst", false, Encoding.UTF8))
             {
+                sw.WriteLine("sql:"+textBox1.Text);
                 foreach (GroupBox grp in panel4.Controls)
                 {
                     sw.WriteLine(grp.Name+"\b"+grp.Location);
@@ -1105,6 +1041,12 @@ namespace DrapPanel
                     string l = "";
                     while ((l = sr.ReadLine()) != null)
                     {
+                        if (l.StartsWith("sql:"))
+                        {
+                            textBox1.Text = l.Substring(4);
+                            button4_Click(null,null);
+                            continue;
+                        }
                         string[] ls = l.Split('\b');
                         GroupBox g = new GroupBox();
                         g.Location = getPoint(ls[1]);
@@ -1159,7 +1101,7 @@ namespace DrapPanel
 
                                 itemstartPoint = getItemLocation(lv, index_src);
                                 startHeight = lv.GetItemRect(index_src).Height;
-                                if (itemstartPoint.Y < srcg.Location.Y + 15+14+16 || itemstartPoint.Y > srcg.Location.Y + srcg.Height - 15)
+                                if (itemstartPoint.Y < 15+14+16 || itemstartPoint.Y > srcg.Height - 15)
                                 {
                                     src_isShow = false;
                                 }
@@ -1167,7 +1109,7 @@ namespace DrapPanel
                                 {
                                     src_isShow = true;
                                 }
-                                startPoint.Y = itemstartPoint.Y + startHeight / 2;
+                                startPoint.Y = srcg.Location.Y+ itemstartPoint.Y + startHeight / 2;
 
                             }
 
@@ -1181,7 +1123,7 @@ namespace DrapPanel
 
                                 itemendPoint = getItemLocation(lv, index_des);
                                 endHeight = lv.GetItemRect(index_des).Height;
-                                if (itemendPoint.Y < desg.Location.Y + 15+14+16 || itemendPoint.Y > desg.Location.Y + desg.Height - 15)
+                                if (itemendPoint.Y <  15+14+16 || itemendPoint.Y > desg.Height - 15)
                                 {
                                    des_isShow = false;
                                 }
@@ -1190,7 +1132,7 @@ namespace DrapPanel
                                     des_isShow = true;
                                 }
 
-                                endPoint.Y = itemendPoint.Y + endHeight / 2;
+                                endPoint.Y =desg.Location.Y+ itemendPoint.Y + endHeight / 2;
 
                             }
 
@@ -1256,7 +1198,8 @@ namespace DrapPanel
             lv.GridLines = true;
             lv.Scrollable = true;
             lv.MultiSelect = false;
-            lv.HoverSelection = true;
+            lv.HoverSelection = false;
+            
 
             #region add data
             lv.Columns.Add("字段名");
@@ -1284,7 +1227,7 @@ namespace DrapPanel
             grp.Controls.Add(panel);
             panel.Dock = DockStyle.Fill;
             panel.BackColor = Color.Transparent;
-            panel.BorderStyle = BorderStyle.FixedSingle;
+            //panel.BorderStyle = BorderStyle.FixedSingle;
             panel.Margin = new Padding(0);
             panel.Padding = new Padding(0);
             //panel.Visible = false;
@@ -1294,6 +1237,7 @@ namespace DrapPanel
             lv.Height = panel.Height - 30;
             lv.Location = new Point(15, 15);
         }
+
 
         public bool isDelete = false;
         private void button2_Click(object sender, EventArgs e)
@@ -1351,9 +1295,49 @@ namespace DrapPanel
             Rectangle vrec = sender.GetItemRect(index);//相对listview的坐标
             vrec.Offset(((ListView)sender).Location);//相对panel的坐标
             vrec.Offset((sender.Parent).Location);//相对groupBox的坐标
-            //vrec.Offset(sender.Parent.Parent.Parent.Location);//相对groupBox的坐标
-            //vrec.Offset((sender.Parent).Location);//相对g\的坐标
+        
             return vrec.Location;
         }
+
+        private void updateListBox()
+        {
+            if (lines.Count > 0&&drawingLine==null)
+            {
+                listBox1.Items.Clear();
+                foreach (Line l in lines)
+                {
+
+                    string showText = "";
+                    showText = "[起点:" + l.srcg.Name + ".";
+
+                    foreach (Control cp in l.srcg.Controls)
+                    {
+                        foreach (ListView lv in cp.Controls)
+                        {
+                            showText += lv.Items[l.srcg_itemIndex].Text + "]+--+";
+                        }
+                    }
+                    showText += "[终点:" + l.desg.Name + ".";
+                    foreach (Control cp in l.desg.Controls)
+                    {
+                        foreach (ListView lv in cp.Controls)
+                        {
+                            showText += lv.Items[l.desg_itemIndex].Text + "]";
+                        }
+                    }
+
+                    if (l.src_isShow && l.des_isShow)
+                    {
+                        listBox1.Items.Add("Show-" + showText);
+                    }
+                    else
+                    {
+                        listBox1.Items.Add("Hide-" +showText);
+                    }
+                }
+            }
+        }
+
+       
     }
 }

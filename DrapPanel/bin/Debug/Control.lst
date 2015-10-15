@@ -1,0 +1,3 @@
+﻿sql:Data Source=ELAB-SQ252L;Initial Catalog=student;Persist Security Info=True;User ID=ta;Password=elab2013
+Comp_Count{X=453,Y=77}
+duty{X=80,Y=58}
