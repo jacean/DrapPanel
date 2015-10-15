@@ -30,6 +30,8 @@
         {
             this.listBox1 = new System.Windows.Forms.ListBox();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.button4 = new System.Windows.Forms.Button();
+            this.textBox1 = new System.Windows.Forms.TextBox();
             this.label12 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
             this.button3 = new System.Windows.Forms.Button();
@@ -38,8 +40,6 @@
             this.comboBox1 = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
             this.panel4 = new System.Windows.Forms.Panel();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.button4 = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -72,6 +72,24 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(898, 165);
             this.panel1.TabIndex = 4;
+            // 
+            // button4
+            // 
+            this.button4.Location = new System.Drawing.Point(15, 102);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(65, 23);
+            this.button4.TabIndex = 15;
+            this.button4.Text = "连接";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(15, 66);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(502, 21);
+            this.textBox1.TabIndex = 14;
+            this.textBox1.Text = "Data Source=;Initial Catalog=;Persist Security Info=True;User ID=;Password=\"";
             // 
             // label12
             // 
@@ -148,32 +166,14 @@
             this.panel4.TabIndex = 5;
             this.panel4.MouseEnter += new System.EventHandler(this.panel4_MouseEnter);
             // 
-            // textBox1
-            // 
-            this.textBox1.Location = new System.Drawing.Point(15, 66);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(419, 21);
-            this.textBox1.TabIndex = 14;
-            this.textBox1.Text = "Data Source=;Initial Catalog=;Persist Security Info=True;User ID=;Password=\"";
-            // 
-            // button4
-            // 
-            this.button4.Location = new System.Drawing.Point(452, 63);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(65, 23);
-            this.button4.TabIndex = 15;
-            this.button4.Text = "连接";
-            this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.button4_Click);
-            // 
-            // Form4
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(898, 586);
             this.Controls.Add(this.panel4);
             this.Controls.Add(this.panel1);
-            this.Name = "Form4";
+            this.Name = "MainForm";
             this.Text = "DrapPanel";
             this.Load += new System.EventHandler(this.Form4_Load);
             this.SizeChanged += new System.EventHandler(this.Form4_SizeChanged);

@@ -22,7 +22,7 @@ namespace DrapPanel
         public SqlConnection cn_Sql = null;
         public SqlTransaction tx_Sql = null;
 
-        public sqlConn(string DBString, string DBType)
+        public void  sqlconn(string DBString, string DBType)
         {
             _connString = DBString;
             _DBType = DBType;

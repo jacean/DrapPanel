@@ -18,7 +18,7 @@ namespace DrapPanel
         }
         public ToolTip tip = new ToolTip();
         string sqltxt = "";
-        sqlConn sqlconn;
+        sqlConn sqlconn = new sqlConn();
        //sqlConn sqlconn = new sqlConn( "Data Source=JACEAN-PC\\SQLEXPRESS;Initial Catalog=student;Integrated Security=True","SQL");
         
 
@@ -48,7 +48,18 @@ namespace DrapPanel
         {
             sqltxt = textBox1.Text;
             //sqltxt="Data Source=ELAB-SQ252L;Initial Catalog=student;Persist Security Info=True;User ID=ta;Password=elab2013";
-            sqlconn = new sqlConn(sqltxt, "SQL");
+            
+            try
+            {
+                sqlconn.sqlconn(sqltxt, "SQL");
+            }
+            catch (Exception ex)
+            {
+                label1.Text = "数据库未连接或连接失败。。。";
+                return;
+            }
+            label1.Text = "数据库连接成功";
+            
             this.DoubleBuffered = true;
             this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
             DataTable dt = sqlconn.getVector("SELECT Name FROM SysObjects Where XType='U' ORDER BY Name");
@@ -62,10 +73,17 @@ namespace DrapPanel
 
         private void button1_Click(object sender, EventArgs e)
         {
-            
-            GroupBox grp = new GroupBox();
-            addNewGroupBox(grp,comboBox1.Text);
-
+            if (sqlconn.cn_Sql != null)
+            {
+                
+                    GroupBox grp = new GroupBox();
+                    addNewGroupBox(grp, comboBox1.Text);
+                
+            }
+            else
+            {
+                MessageBox.Show("数据库尚未连接。。。");
+            }
             
         }
 
@@ -1046,6 +1064,10 @@ namespace DrapPanel
                             textBox1.Text = l.Substring(4);
                             button4_Click(null,null);
                             continue;
+                        }
+                        if (sqlconn.cn_Sql==null|| sqlconn.cn_Sql.State==ConnectionState.Connecting)
+                        {
+                            return;
                         }
                         string[] ls = l.Split('\b');
                         GroupBox g = new GroupBox();
