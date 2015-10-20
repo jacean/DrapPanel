@@ -54,6 +54,12 @@
     <Compile Include="MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="myListview.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="myListview.Designer.cs">
+      <DependentUpon>myListview.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="MainForm.resx">
