@@ -16,10 +16,10 @@ namespace DrapPanel
         {
             InitializeComponent();
         }
-        public ToolTip tip = new ToolTip();
+      
         string sqltxt = "";
         sqlConn sqlconn = new sqlConn();
-        
+        public ContextMenuStrip rM = new ContextMenuStrip();
 
         private void Form4_Load(object sender, EventArgs e)
         {
@@ -32,16 +32,17 @@ namespace DrapPanel
             panel4.MouseUp += new MouseEventHandler(panel4_MouseUp);
             panel4.MouseWheel += new MouseEventHandler(panel4_MouseWheel);
             
+            
           
             loadData();
-
+            updateListBox();
+            updateLines();
             
             panel4.Height=this.ClientSize.Height-panel1.Height;
 
-            tip.IsBalloon = true;
-            
-
         }
+
+       
 
         private void button4_Click(object sender, EventArgs e)
         {
@@ -76,7 +77,7 @@ namespace DrapPanel
             {
                 
                     GroupBox grp = new GroupBox();
-                    addNewGroupBox(grp, comboBox1.Text);
+                    addNewGroupBox(grp, comboBox1.Text,false);
                 
             }
             else
@@ -102,141 +103,125 @@ namespace DrapPanel
             int x = e.Location.X;
             int y = e.Location.Y;
 
-            #region 判断鼠标是否选中线，如果选中的话inline=true，同时moveline被赋值和添加
+            isInline(x,y);
 
-            foreach (Line l in lines)
+            if (e.Button == MouseButtons.Left)
             {
-                if (l.StartPoint.X == l.EndPoint.X)
-                { //线是水平线的话，x的横坐标在不在两个断电之间
-                    if (x == l.StartPoint.X)
+                if (inLine && drawingLine == null)//在已有的线上
+                {//已屏蔽选中线条移动事件
+                    if (isDelete)
                     {
-                        if (isBetween(l.StartPoint.Y, l.EndPoint.Y, y))
-                        {
-                            inLine = true;
-                            selectedLine = l;
-                            break;
-                        }
-                        else
-                        {
-                            inLine = false;
-                            continue;
-                        }
-                    }
+                        lines.Remove(selectedLine);
 
-                }
-                else if (l.StartPoint.Y == l.EndPoint.Y)
-                {//线是垂直线
-                    if (y == l.StartPoint.Y)
-                    {
-                        if (isBetween(l.StartPoint.X, l.EndPoint.X, x))
-                        {
-                            inLine = true;
-                            selectedLine = l;
-                          
-                            break;
-                        }
-                        else
-                        {
-                            inLine = false;
-                            continue;//这条线已经没有再判断的必要了
-                        }
-                    }
-                }
-                else if (x == l.StartPoint.X)
-                {
-                    if (y == l.StartPoint.Y)
-                    {
-                        //点在线的两端点上
-                        inLine = true; 
-                        selectedLine = l;
-                       
-                        break;
+                        this.Invalidate();
+                        this.Refresh();
                     }
                     else
-                    {
-                        inLine = false;
-                        continue;
+                    {//弹出窗体
+
+                        string showText = "";
+                        showText = "起点:" + selectedLine.srcg.Name + "->";
+
+                        foreach (Control cp in selectedLine.srcg.Controls)
+                        {
+                            foreach (ListView lv in cp.Controls)
+                            {
+                                showText += lv.Items[selectedLine.srcg_itemIndex].Text + "\n";
+                            }
+                        }
+                        showText += "终点:" + selectedLine.desg.Name + "->";
+                        foreach (Control cp in selectedLine.desg.Controls)
+                        {
+                            foreach (ListView lv in cp.Controls)
+                            {
+                                showText += lv.Items[selectedLine.desg_itemIndex].Text + "\n";
+                            }
+                        }
+
                     }
-                }
-                else if (x == l.EndPoint.X)
-                {
-                    if (y == l.EndPoint.Y)
-                    {
-                        //点在线的两端点上
-                        inLine = true;
-                        selectedLine = l;
-                       
-                        break;
-                    }
-                    else
-                    {
-                        inLine = false;
-                        continue;
-                    }
-                }
-                else if ((l.EndPoint.Y - l.StartPoint.Y) / (l.EndPoint.X - l.StartPoint.X) == (y - l.StartPoint.Y) / (x - l.StartPoint.X) && isBetween(l.StartPoint.X, l.EndPoint.X, x) && isBetween(l.StartPoint.Y, l.EndPoint.Y, y))
-                {
-                    inLine = true;
-                    selectedLine = l;
-                    break;
                 }
                 else
-                {
-                    inLine = false;
-
-                }
-            }
-
-            #endregion
-
-            if (inLine)//在已有的线上
-            {//已屏蔽选中线条移动事件
-                if (isDelete)
-                {                    
-                    lines.Remove(selectedLine);
-                    
-                    this.Invalidate();
-                    this.Refresh();
-                }
-                else
-                {
-                   
-                    string showText="";
-                    showText="起点:"+selectedLine.srcg.Name+"->";
-                    
-                     foreach (Control cp in selectedLine.srcg.Controls)
+                {//画面整体移动//怎么才能把控件画在画布上，这样调整画布的起始坐标就好了嘛
+                    isMoveForm = true;
+                    movestartPoint = e.Location;
+                    pointList.Clear();
+                    foreach (GroupBox gr in panel4.Controls)
                     {
-                        foreach (ListView lv in cp.Controls)
-                        {
-                            showText+=lv.Items[selectedLine.srcg_itemIndex].Text+"\n";
-                        }
+                        pointList.Add(gr.Location);
                     }
-                    showText+="终点:"+selectedLine.desg.Name+"->";
-                     foreach (Control cp in selectedLine.desg.Controls)
-                    {
-                        foreach (ListView lv in cp.Controls)
-                        {
-                            showText+=lv.Items[selectedLine.desg_itemIndex].Text+"\n";
-                        }
-                    }
-                    tip.SetToolTip(panel4,showText);
-                    tip.ShowAlways = true;
-                    
-                    inLine=false;
+
                 }
             }
-            else
-            {//画面整体移动//怎么才能把控件画在画布上，这样调整画布的起始坐标就好了嘛
-                isMoveForm = true;
-                movestartPoint = e.Location;
-                pointList.Clear();
-                foreach (GroupBox gr in panel4.Controls)
+            if (e.Button == MouseButtons.Right)
+            {
+                if (inLine)
                 {
-                    pointList.Add(gr.Location);
+                     string showText = "选中线:\n";
+                        showText += "起点:" + selectedLine.srcg.Name + "->";
+
+                        foreach (Control cp in selectedLine.srcg.Controls)
+                        {
+                            foreach (ListView lv in cp.Controls)
+                            {
+                                showText += lv.Items[selectedLine.srcg_itemIndex].Text + "\n";
+                            }
+                        }
+                        showText += "终点:" + selectedLine.desg.Name + "->";
+                        foreach (Control cp in selectedLine.desg.Controls)
+                        {
+                            foreach (ListView lv in cp.Controls)
+                            {
+                                showText += lv.Items[selectedLine.desg_itemIndex].Text;
+                            }
+                        }
+                    rM.Show(panel4, e.Location);
+                    rM.ShowImageMargin = false;
+                    rM.Items.Clear();
+                    rM.Items.Add(showText);
+                    rM.Items.Add("颜色");
+                    rM.Items.Add("隐藏");
+                    ToolStripTextBox mtxt = new ToolStripTextBox();
+                    mtxt.Text = selectedLine.tag;
+                    mtxt.KeyDown += new KeyEventHandler(mtxt_KeyDown);
+                    rM.Items.Add(mtxt);
+                    rM.Items[0].Enabled = false;
+                    rM.Items[1].Click += new EventHandler(item1_Click);
+                    rM.Items[2].Click+=new EventHandler(item2_Click);
+                    
                 }
-                
             }
-           
+            updateLines();
+            inLine = false;
+        }
+
+        void mtxt_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                selectedLine.tag = ((ToolStripTextBox)sender).Text;
+
+            }
+        }
+
+        
+
+        void item1_Click(object sender, EventArgs e)
+        {
+            ColorDialog cd = new ColorDialog();
+            
+            if (cd.ShowDialog() == DialogResult.OK)
+            {
+                selectedLine.color = cd.Color;
+                selectedLine = null;
+            }
+          
+            this.Refresh();
+        }
+        void item2_Click(object sender, EventArgs e)
+        {
+            selectedLine.isShow = false;
+            selectedLine = null;
+            this.Refresh();
         }
         List<Point> pointList = new List<Point>();
         public bool isMoveForm= false;//是否在拖动画面
@@ -251,12 +236,7 @@ namespace DrapPanel
         void panel4_MouseMove(object sender, MouseEventArgs e)
         {
             label1.Text = getPointToForm((Control)sender, e.Location).ToString();
-            if (!inLine)
-            {
-                tip = new ToolTip();
-                tip.IsBalloon = true;
-                tip.Hide(this);
-            }
+           
             if (startPaint && location == 0)
             {
                 
@@ -315,6 +295,13 @@ namespace DrapPanel
                 #region 移动控件
                 foreach (Control ct in this.panel4.Controls)
                 {//看成是点的移动
+
+                    if (ct.Width < 60 | ct.Height< 60)
+                    {
+                        if (Mo < 1)
+                            return;
+                    }
+
                     ct.Width += (int)((Mo - 1) * (float)ct.Width);
                     ct.Height += (int)((Mo - 1) * (float)ct.Height);
                     ct.Left += (int)((float)(ct.Left - e.X) * (Mo - 1));
@@ -355,18 +342,18 @@ namespace DrapPanel
             Pen p = new Pen(Color.Black);
             foreach (Line line in lines)
             {
-                if (line.src_isShow && line.des_isShow)
+                if (line.src_isShow && line.des_isShow&&line.isShow)
                 {
-                    if (line == drawingLine )
+                    if (line == drawingLine||(selectedLine!=null&&line==selectedLine))
                     {
-                        // 当前绘制的线条是正在鼠标定位的线条
                         p.Color = Color.Blue;
+
                     }
                     else
                     {
-                        p.Color = Color.Black;
+                        p.Color = line.color;
                     }
-                    g.DrawLine(p, line.StartPoint, line.EndPoint);
+                g.DrawLine(p, line.StartPoint, line.EndPoint);
                 }
             }
             // 将缓冲位图绘制到输出
@@ -563,6 +550,7 @@ namespace DrapPanel
         #region 定义线元素
         class Line
         {
+            public int ID =-1;
             public Point StartPoint = Point.Empty;
             public Point EndPoint = Point.Empty;
             public GroupBox srcg;
@@ -573,6 +561,9 @@ namespace DrapPanel
             public int dsX_des = 0;
             public bool src_isShow = true;
             public bool des_isShow = true;
+            public bool isShow = true;
+            public Color color = Color.Black;
+            public string tag = "添加标签";
             public Line(Point startPoint)
             {
                 StartPoint = startPoint;
@@ -651,7 +642,7 @@ namespace DrapPanel
             int y = e.Y;
        
                 drawingLine = new Line(e);
-                
+      
                 lines.Add(drawingLine);
 
             //}
@@ -712,6 +703,8 @@ namespace DrapPanel
                 GroupBox g = (GroupBox)sender;
                 g.Location = rect.Location;
 
+               
+                
                 updateLines();
             }
         }
@@ -769,7 +762,7 @@ namespace DrapPanel
                 sw.WriteLine("sql:"+textBox1.Text);
                 foreach (GroupBox grp in panel4.Controls)
                 {
-                    sw.WriteLine(grp.Name+"\b"+grp.Location);
+                    sw.WriteLine(grp.Name+"\b"+grp.Location+"\b"+grp.Width.ToString()+"\b"+grp.Height.ToString());
                 }
             }
         }
@@ -796,7 +789,10 @@ namespace DrapPanel
                         string[] ls = l.Split('\b');
                         GroupBox g = new GroupBox();
                         g.Location = getPoint(ls[1]);
-                        addNewGroupBox(g, ls[0]);
+                        g.Width = int.Parse(ls[2]);
+                        g.Height = int.Parse(ls[3]);
+                        addNewGroupBox(g, ls[0],true);
+                        
                     }
                 }
             }
@@ -908,7 +904,7 @@ namespace DrapPanel
             string[] xa = x.Split(',');
             return new Point(int.Parse(xa[0].TrimStart("X=".ToCharArray())),int.Parse(xa[1].TrimStart("Y=".ToCharArray())));
         }
-        private void  addNewGroupBox(GroupBox grp,string name)
+        private void  addNewGroupBox(GroupBox grp,string name,bool isLoad)
         {
             foreach (GroupBox g in panel4.Controls)
             {
@@ -922,8 +918,11 @@ namespace DrapPanel
          
             grp.Text = name;
             grp.Name = name;
-            grp.Width = 150;
-            grp.Height = 300;
+            if (!isLoad)
+            {
+                grp.Width = 150;
+                grp.Height = 300;
+            }
             grp.Margin = new Padding(0);
             grp.Padding = new Padding(0);
             grp.MouseDown += new MouseEventHandler(control_MouseDown);
@@ -1075,12 +1074,18 @@ namespace DrapPanel
 
                     if (l.src_isShow && l.des_isShow)
                     {
-                        listBox1.Items.Add("Show-" + showText);
+                        if (!l.isShow)
+                        {
+                            listBox1.Items.Add("setHide-" + showText);
+                        }
+                        else 
+                            listBox1.Items.Add("Show-" + showText);
                     }
                     else
                     {
                         listBox1.Items.Add("Hide-" +showText);
                     }
+                    l.ID = listBox1.Items.Count - 1;
                 }
             }
         }
@@ -1088,7 +1093,7 @@ namespace DrapPanel
         private void updateLines()
         {
 
-
+            
 
             #region 刷新线
 
@@ -1101,17 +1106,28 @@ namespace DrapPanel
 
             foreach (Line line in lines)
             {
-                if (line.dsX_src > 0)
-                {
-                    line.dsX_src = line.srcg.Width;
-                }
-                if (line.dsX_des > 0)
-                {
-                    line.dsX_des = line.desg.Width;
-                }
+                
 
+                
+                desg = (GroupBox)line.desg;
                 srcg = (GroupBox)line.srcg;
 
+                if (line.desg != null)
+                {
+                    if (line.srcg.Left >= line.desg.Left)
+                    {
+                        line.dsX_src = 0;
+                        line.dsX_des = line.desg.Width;
+
+                    }
+                    else
+                    {
+                        line.dsX_src = line.srcg.Width;
+                        line.dsX_des = 0;
+                    }
+
+                }
+                
                 foreach (Control cp in srcg.Controls)
                 {
                     foreach (ListView lv in cp.Controls)
@@ -1136,8 +1152,8 @@ namespace DrapPanel
                 line.StartPoint.X = line.srcg.Location.X + line.dsX_src;
 
 
+                if (desg == null) return;
 
-                desg = (GroupBox)line.desg;
                 foreach (Control cp in desg.Controls)
                 {
                     foreach (ListView lv in cp.Controls)
@@ -1168,6 +1184,113 @@ namespace DrapPanel
             this.Invalidate();
             this.Refresh();
 
+        }
+
+        private void isInline(int x,int y)
+        {
+            #region 判断鼠标是否选中线，如果选中的话inline=true，同时moveline被赋值和添加
+
+            foreach (Line l in lines)
+            {
+                if (l.StartPoint.X == l.EndPoint.X)
+                { //线是水平线的话，x的横坐标在不在两个断电之间
+                    if (x == l.StartPoint.X)
+                    {
+                        if (isBetween(l.StartPoint.Y, l.EndPoint.Y, y))
+                        {
+                            inLine = true;
+                            selectedLine = l;
+                            break;
+                        }
+                        else
+                        {
+                            inLine = false;
+                            continue;
+                        }
+                    }
+
+                }
+                else if (l.StartPoint.Y == l.EndPoint.Y)
+                {//线是垂直线
+                    if (y == l.StartPoint.Y)
+                    {
+                        if (isBetween(l.StartPoint.X, l.EndPoint.X, x))
+                        {
+                            inLine = true;
+                            selectedLine = l;
+
+                            break;
+                        }
+                        else
+                        {
+                            inLine = false;
+                            continue;//这条线已经没有再判断的必要了
+                        }
+                    }
+                }
+                else if (x == l.StartPoint.X)
+                {
+                    if (y == l.StartPoint.Y)
+                    {
+                        //点在线的两端点上
+                        inLine = true;
+                        selectedLine = l;
+
+                        break;
+                    }
+                    else
+                    {
+                        inLine = false;
+                        continue;
+                    }
+                }
+                else if (x == l.EndPoint.X)
+                {
+                    if (y == l.EndPoint.Y)
+                    {
+                        //点在线的两端点上
+                        inLine = true;
+                        selectedLine = l;
+
+                        break;
+                    }
+                    else
+                    {
+                        inLine = false;
+                        continue;
+                    }
+                }
+                else if ((l.EndPoint.Y - l.StartPoint.Y) / (l.EndPoint.X - l.StartPoint.X) == (y - l.StartPoint.Y) / (x - l.StartPoint.X) && isBetween(l.StartPoint.X, l.EndPoint.X, x) && isBetween(l.StartPoint.Y, l.EndPoint.Y, y))
+                {
+                    inLine = true;
+                    selectedLine = l;
+                    break;
+                }
+                else
+                {
+                    inLine = false;
+
+                }
+            }
+
+            #endregion
+
+        }
+
+        private void listBox1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            int index = listBox1.SelectedIndex;
+            foreach (Line l in lines)
+            {
+                if (l.ID == index)
+                {
+                    if (l.isShow == true) l.isShow = false;
+                    else { l.isShow = true; selectedLine = l; }
+                }
+            }
+            updateListBox();
+            updateLines();
+            
         }
     }
 }

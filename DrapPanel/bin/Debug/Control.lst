@@ -1,4 +1,4 @@
 ﻿sql:Data Source=ELAB-SQ252L;Initial Catalog=student;Persist Security Info=True;User ID=ta;Password=elab2013
-Comp_Count{X=332,Y=68}
-dtproperties{X=26,Y=56}
-Log{X=739,Y=86}
+Comp_Count{X=546,Y=143}127243
+Duty_w{X=125,Y=142}127243
+sduty{X=300,Y=32}127243

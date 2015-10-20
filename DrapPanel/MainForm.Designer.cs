@@ -53,6 +53,7 @@
             this.listBox1.Name = "listBox1";
             this.listBox1.Size = new System.Drawing.Size(356, 163);
             this.listBox1.TabIndex = 0;
+            this.listBox1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listBox1_MouseDoubleClick);
             // 
             // panel1
             // 
@@ -89,7 +90,7 @@
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(502, 21);
             this.textBox1.TabIndex = 14;
-            this.textBox1.Text = "Data Source=;Initial Catalog=;Persist Security Info=True;User ID=;Password=\"";
+            this.textBox1.Text = "Data Source=;Initial Catalog=;Persist Security Info=True;User ID=;Password=";
             // 
             // label12
             // 
@@ -111,7 +112,7 @@
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(296, 3);
+            this.button3.Location = new System.Drawing.Point(283, 3);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(93, 23);
             this.button3.TabIndex = 11;
