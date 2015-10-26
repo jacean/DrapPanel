@@ -30,8 +30,6 @@ namespace DrapPanel
                     return;
                 }
             }
-            DataTable tblFields = sqlconn.cn_Sql.GetSchema(SqlClientMetaDataCollectionNames.Columns);
-
             grp.Text = name;
             grp.Name = name;
             if (!isLoad)
@@ -90,7 +88,7 @@ namespace DrapPanel
 
 
 
-            //loadData();
+            loadData();
             //updateListBox();
             //updateLines();
 
@@ -118,41 +116,33 @@ namespace DrapPanel
             {
                 if (inLine && drawingLine == null)//在已有的线上
                 {//已屏蔽选中线条移动事件
+                    string[] text = { selectedLine.srcg.Name, selectedLine.desg.Name };
+                    Array.Sort(text);
+
                     if (isDelete)
                     {
                         lines.Remove(selectedLine);
-
+                        DirectoryInfo folder = new DirectoryInfo(Application.StartupPath+"\\Work");
+                        foreach (FileInfo file in folder.GetFiles())
+                        {
+                            if (file.Name.StartsWith(text[0] + "_" + text[1]))
+                            {
+                                file.Delete();
+                            }
+                        }
                         this.Invalidate();
                         this.Refresh();
                     }
                     else
                     {//弹出窗体
-
-                        //string showText = "";
-                        //showText = "起点:" + selectedLine.srcg.Name + "->";
-
-                        //foreach (Control cp in selectedLine.srcg.Controls)
-                        //{
-                        //    foreach (ListView lv in cp.Controls)
-                        //    {
-                        //        showText += lv.Items[selectedLine.srcg_itemIndex].Text + "\n";
-                        //    }
-                        //}
-                        //showText += "终点:" + selectedLine.desg.Name + "->";
-                        //foreach (Control cp in selectedLine.desg.Controls)
-                        //{
-                        //    foreach (ListView lv in cp.Controls)
-                        //    {
-                        //        showText += lv.Items[selectedLine.desg_itemIndex].Text + "\n";
-                        //    }
-                        //}
-
-                        LinesForm lineForm = new LinesForm();
-                        lineForm.ShowDialog();
+                        LinesForm linesForm = new LinesForm(sqltxt);
+                        
+                        linesForm.Text = text[0]+ "&"+ text[1];
+                        linesForm.Show();
                     }
                 }
                 else
-                {//画面整体移动//怎么才能把控件画在画布上，这样调整画布的起始坐标就好了嘛
+                {//画面整体移动
                     isMoveForm = true;
                     movestartPoint = e.Location;
                     foreach (Line l in lines)
@@ -168,32 +158,7 @@ namespace DrapPanel
 
                 }
             }
-            if (e.Button == MouseButtons.Right)
-            {
-                if (inLine)
-                {
-                    string showText = "选中线:\n";
-                    showText += "起点:" + selectedLine.srcg.Name + "->";
 
-                    foreach (Control cp in selectedLine.srcg.Controls)
-                    {
-                        foreach (ListView lv in cp.Controls)
-                        {
-                            showText += lv.Items[selectedLine.srcg_itemIndex].Text + "\n";
-                        }
-                    }
-                    showText += "终点:" + selectedLine.desg.Name + "->";
-                    foreach (Control cp in selectedLine.desg.Controls)
-                    {
-                        foreach (ListView lv in cp.Controls)
-                        {
-                            showText += lv.Items[selectedLine.desg_itemIndex].Text;
-                        }
-                    }
-                  
-
-                }
-            }
             updateLines();
             inLine = false;
         }
@@ -216,37 +181,29 @@ namespace DrapPanel
 
                 if (drawingLine != null)
                 {
-
                     drawingLine.EndPoint = e.Location;
-
                     this.Invalidate();
-
                     this.Refresh();
                 }
             }
-
 
             if (isMoveForm)
             {
                 foreach (Line line in lines)
                 {
-
-                    //坐标转换  //只在确定移动的时候赋值，然后使用应该就可以了吧，就是在down时              
+                    //坐标转换          
 
                     line.StartPoint.X = line.startPointAdd.X - movestartPoint.X + e.X;
                     line.StartPoint.Y = line.startPointAdd.Y - movestartPoint.Y + e.Y;
 
                     line.EndPoint.X = line.endPointAdd.X - movestartPoint.X + e.X;
                     line.EndPoint.Y = line.endPointAdd.Y - movestartPoint.Y + e.Y;
-
                 }
-               
 
                 //移动容器,依靠的是系统对groupbox的遍历是一致的顺序
                 int i = 0;
                 foreach (GroupBox grp in panel4.Controls)
                 {
-
                     grp.Left = pointList[i].X - movestartPoint.X + e.X;
                     grp.Top = pointList[i++].Y - movestartPoint.Y + e.Y;
                 }
@@ -308,34 +265,21 @@ namespace DrapPanel
                 }
 
                 #endregion
-               // updateLines();
 
                 //移动线条////////////////////
 
                 foreach (Line line in lines)
                 {
-
-                    //线条的起始坐标转换,这个有误差，且越积累越大
-                    //line.StartPoint.X += (int)((float)(line.StartPoint.X - e.X) * (Mo - 1));
-                    //line.StartPoint.Y += (int)((float)(line.StartPoint.Y - e.Y) * (Mo - 1));
-                    //line.EndPoint.X += (int)((float)(line.EndPoint.X - e.X) * (Mo - 1));
-                    //line.EndPoint.Y += (int)((float)(line.EndPoint.Y - e.Y) * (Mo - 1));
-
                     //用相对坐标试下
-                    //                
                     line.startPointtoSender.X += (int)((float)(line.startPointtoSender.X) * (Mo - 1));
                     line.startPointtoSender.Y += (int)((float)(line.startPointtoSender.Y) * (Mo - 1));
                     line.endPointtoSender.X += (int)((float)(line.endPointtoSender.X) * (Mo - 1));
                     line.endPointtoSender.Y += (int)((float)(line.endPointtoSender.Y) * (Mo - 1));
                     line.StartPoint = new Point(line.srcg.Location.X + line.startPointtoSender.X, line.srcg.Location.Y + line.startPointtoSender.Y);
                     line.EndPoint = new Point(line.desg.Location.X + line.endPointtoSender.X, line.desg.Location.Y + line.endPointtoSender.Y);
-
-
                 }
 
-
-                this.Invalidate();
-                this.Refresh();
+                updateLines();
             }
         }
 
@@ -348,26 +292,26 @@ namespace DrapPanel
         {
 
             Bitmap bp = new Bitmap(panel4.Width, panel4.Height); // 用于缓冲输出的位图对象
-            //Bitmap bp = new Bitmap(this.Width, this.Height); // 用于缓冲输出的位图对象
-
+        
             Graphics g = Graphics.FromImage(bp);
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias; // 消锯齿（可选项）
             Pen p = new Pen(Color.Black);
             foreach (Line line in lines)
             {
-                if (line.src_isShow && line.des_isShow && line.isShow)
+                if (line == drawingLine || (selectedLine != null && line == selectedLine))
                 {
-                    if (line == drawingLine || (selectedLine != null && line == selectedLine))
-                    {
-                        p.Color = Color.Blue;
-
-                    }
-                    else
-                    {
-                        p.Color = line.color;
-                    }
+                    p.Color = Color.Blue;
                     g.DrawLine(p, line.StartPoint, line.EndPoint);
                 }
+                else
+                {
+                    if (line.srcg.Visible && line.desg.Visible)
+                    {
+                        p.Color = line.color;
+                        g.DrawLine(p, line.StartPoint, line.EndPoint);
+                    }                                                      
+                }
+                                       
             }
             // 将缓冲位图绘制到输出
             //e.Graphics.DrawImage(bp, Point.Empty);
@@ -432,6 +376,19 @@ namespace DrapPanel
                 GroupBox g = (GroupBox)sender;
                 g.Location = rect.Location;
 
+                foreach (Line l in lines)
+                {
+                    if (l.srcg == g)
+                    {
+                        l.StartPoint.X = g.Location.X + l.startPointtoSender.X;
+                        l.StartPoint.Y = g.Location.Y + l.startPointtoSender.Y;
+                    }
+                    if (l.desg == g)
+                    {
+                        l.EndPoint.X = g.Location.X + l.endPointtoSender.X;
+                        l.EndPoint.Y = g.Location.Y + l.endPointtoSender.Y;
+                    }
+                }
 
 
                 updateLines();
@@ -484,6 +441,7 @@ namespace DrapPanel
                 location = 1;
                 src = sender;
                 count = 1;
+                label2.Text = "正在画线";
             }
             else
             {//结束panel
@@ -491,12 +449,30 @@ namespace DrapPanel
                 {
 
                     drawingLine.desg = (GroupBox)((Panel)sender).Parent;
-                    //
-                    drawingLine.endPointtoSender.X = this.PointToClient(Control.MousePosition).X - drawingLine.desg.Location.X;
-                    drawingLine.endPointtoSender.Y = this.PointToClient(Control.MousePosition).Y - drawingLine.desg.Location.Y;
-                    //
-                
-                    endDrawingFunc(this.PointToClient(Control.MousePosition));//
+                    bool isHave = false;
+                    foreach (Line l in lines)
+                    {
+                        if (l != drawingLine && ((l.srcg == drawingLine.srcg && l.desg == drawingLine.desg)||(l.srcg==drawingLine.desg&&l.desg==drawingLine.srcg)))
+                        {
+                            label2.Text = "这两个表已经有了联系，不必重新建立关联";
+                            isHave = true;
+
+                        }
+                    }
+                    if (isHave)
+                    {
+                        drawingLine.StartPoint = Point.Empty;
+                        drawingLine.EndPoint = Point.Empty;
+                        lines.Remove(drawingLine);
+                        drawingLine = null;
+                    }
+                    else
+                    {
+                        drawingLine.endPointtoSender.X = this.PointToClient(Control.MousePosition).X - drawingLine.desg.Location.X;
+                        drawingLine.endPointtoSender.Y = this.PointToClient(Control.MousePosition).Y - drawingLine.desg.Location.Y;
+                        endDrawingFunc(this.PointToClient(Control.MousePosition));//
+                        label2.Text = "画线成功";
+                    }
                 }
                 else
                 {
@@ -505,8 +481,9 @@ namespace DrapPanel
                         //清空之前的line
                         drawingLine.StartPoint = Point.Empty;
                         drawingLine.EndPoint = Point.Empty;
-                        drawingLine = null;
                         lines.Remove(drawingLine);
+                        drawingLine = null;
+                        label2.Text = "不能在一张表上建立自身关联";
                     }
                 }
 
@@ -532,8 +509,6 @@ namespace DrapPanel
 
                 if (startPaint && location == 2)
                 {
-
-
                     drawingLine.EndPoint = this.getPointToForm((Control)sender, e.Location);
                 }
                 this.Invalidate();
@@ -581,18 +556,14 @@ namespace DrapPanel
                 //
               
             }
-            if (mDown && location == 1)
-            {
-                location = 0;
-
-            }
+          
             if (startPaint && location == 2)
             {
                 drawingLine.EndPoint = this.PointToClient(Control.MousePosition);
                 location = 0;
 
             }
-            if (startPaint && count > 1)
+            if (startPaint && location==1 &&count > 1)
             {
                 drawingLine.EndPoint = this.PointToClient(Control.MousePosition);
                 location = 0;
@@ -619,13 +590,6 @@ namespace DrapPanel
 
             public GroupBox srcg;
             public GroupBox desg;
-            public int srcg_itemIndex = -1;
-            public int desg_itemIndex = -1;
-            public int dsX_src = 0;
-            public int dsX_des = 0;
-            public bool src_isShow = true;
-            public bool des_isShow = true;
-            public bool isShow = true;
             public Color color = Color.Black;
             public string tag = "添加标签";
            
@@ -703,16 +667,13 @@ namespace DrapPanel
         /// <param name="e"></param>
         void startDrawingFunc(Point e)
         {
-            //int x=e.Location.X;
-            //int y=e.Location.Y;
+   
             int x = e.X;
             int y = e.Y;
 
             drawingLine = new Line(e);
 
             lines.Add(drawingLine);
-
-            //}
 
 
         }
@@ -745,20 +706,9 @@ namespace DrapPanel
         private void updateLines()
         {
 
-
-
-            #region 刷新线
-
             Point itemstartPoint = Point.Empty;
             Point itemendPoint = Point.Empty;
-            int startHeight = 0;
-            int endHeight = 0;
-            GroupBox srcg = null;
-            GroupBox desg = null;
-
            
-
-            #endregion
             this.Invalidate();
             this.Refresh();
 
@@ -768,45 +718,30 @@ namespace DrapPanel
         {
             if (lines.Count > 0 && drawingLine == null)
             {
-                //listBox1.Items.Clear();
-                //foreach (Line l in lines)
-                //{
+                listBox1.Items.Clear();
+                foreach (Line l in lines)
+                {
 
-                //    string showText = "";
-                //    showText = "[起点:" + l.srcg.Name + ".";
+                    string showText = "";
+                    showText = "[起点:" + l.srcg.Name + "]+--+";
 
-                //    foreach (Control cp in l.srcg.Controls)
-                //    {
-                //        foreach (ListView lv in cp.Controls)
-                //        {
-                //            showText += lv.Items[l.srcg_itemIndex].Text + "]+--+";
-                //        }
-                //    }
-                //    showText += "[终点:" + l.desg.Name + ".";
-                //    foreach (Control cp in l.desg.Controls)
-                //    {
-                //        foreach (ListView lv in cp.Controls)
-                //        {
-                //            showText += lv.Items[l.desg_itemIndex].Text + "]";
-                //        }
-                //    }
+                   
+                    showText += "[终点:" + l.desg.Name + "]";
+                    foreach (Control cp in l.desg.Controls)
+                    
 
-                //    if (l.src_isShow && l.des_isShow)
-                //    {
-                //        if (!l.isShow)
-                //        {
-                //            listBox1.Items.Add("setHide-" + showText);
-                //        }
-                //        else
-                //            listBox1.Items.Add("Show-" + showText);
-                //    }
-                //    else
-                //    {
-                //        listBox1.Items.Add("Hide-" + showText);
-                //    }
-                //    l.ID = listBox1.Items.Count - 1;
-                //}
-                //listBox1.SelectedIndex = index;
+                    if (l.srcg.Visible&&l.desg.Visible)
+                    {
+                       
+                            listBox1.Items.Add("Show-" + showText);
+                    }
+                    else
+                    {
+                        listBox1.Items.Add("Hide-" + showText);
+                    }
+                    l.ID = listBox1.Items.Count - 1;
+                }
+                listBox1.SelectedIndex = index;
             }
         }
         public int index = -1;
@@ -817,8 +752,9 @@ namespace DrapPanel
             {
                 if (l.ID == index)
                 {
-                    if (l.isShow == true) l.isShow = false;
-                    else { l.isShow = true; selectedLine = l; }
+                    LinesForm linesForm = new LinesForm(sqltxt);
+                    linesForm.Text = selectedLine.srcg.Name + "&" + selectedLine.desg.Name;
+                    linesForm.Show();
                 }
             }
             updateListBox();
@@ -842,10 +778,8 @@ namespace DrapPanel
 
         private void button4_Click(object sender, EventArgs e)
         {
-            textBox1.Text = "Data Source=ELAB-SQ252L;Initial Catalog=student;Persist Security Info=True;User ID=ta;Password=elab2013";
+            //textBox1.Text = "Data Source=ELAB-SQ252L;Initial Catalog=student;Persist Security Info=True;User ID=ta;Password=elab2013";
             sqltxt = textBox1.Text;
-            //sqltxt="Data Source=ELAB-SQ252L;Initial Catalog=student;Persist Security Info=True;User ID=ta;Password=elab2013";
-
             try
             {
                 sqlconn.sqlconn(sqltxt, "SQL");
@@ -868,21 +802,9 @@ namespace DrapPanel
           
 
         }
-
-       
-
-        private void checkedListBox1_MouseClick(object sender, MouseEventArgs e)
-        {
-           
-        }
-
         private void checkedListBox1_ItemCheck(object sender, ItemCheckEventArgs e)
         {
             int tableindex = e.Index;
-            
-            ////for (int i = 0; i < checkedListBox1.SelectedItems.Count;i++ )
-            ////{
-
             if (checkedListBox1.GetItemCheckState(tableindex) == CheckState.Unchecked)
             {
                 foreach (GroupBox g in panel4.Controls)
@@ -890,6 +812,7 @@ namespace DrapPanel
                     if (g.Name == checkedListBox1.SelectedItem.ToString())
                     {
                         g.Visible = true;
+                        updateLines();
                         return;
                     }
                 }
@@ -906,7 +829,8 @@ namespace DrapPanel
                     }
                 }
             }
-            //}
+
+            updateLines();
            
         }
         private void isInline(int x, int y)
@@ -1010,9 +934,102 @@ namespace DrapPanel
             else
             {
                 isDelete = false;
-                button2.Text = "delete(Line)";
+                button2.Text = "要删除点我";
             }
         }
-        
+
+        private void TablesForm_FormClosed(object sender, FormClosedEventArgs e)
+        {//保存数据
+            if (!Directory.Exists(Application.StartupPath + "Work")) Directory.CreateDirectory(Application.StartupPath + "\\Work");
+            using (StreamWriter sw = new StreamWriter(@"Work\\Connection.lst", false, Encoding.UTF8))
+            {
+                foreach (Line l in lines)
+                {
+                    sw.WriteLine(l.StartPoint.ToString() + "\b" + l.EndPoint.ToString() + "\b" + l.startPointtoSender.ToString() + "\b" + l.endPointtoSender.ToString() + "\b" + l.srcg.Name.ToString() + "\b" + l.desg.Name.ToString());
+                }
+            }
+            using (StreamWriter sw = new StreamWriter(@"Work\\Location.lst", false, Encoding.UTF8))
+            {
+                sw.WriteLine("sql:" + textBox1.Text);
+                foreach (GroupBox grp in panel4.Controls)
+                {
+                    sw.WriteLine(grp.Name + "\b" + grp.Location + "\b" + grp.Width.ToString() + "\b" + grp.Height.ToString());
+                }
+            }
+        }
+        private void loadData()
+        {
+            if (File.Exists(@"Work\\Location.lst"))
+            {
+                using (StreamReader sr = new StreamReader(@"Work\\Location.lst", Encoding.UTF8))
+                {
+                    string l = "";
+                    while ((l = sr.ReadLine()) != null)
+                    {if (l.StartsWith("sql:"))
+                        {
+                            textBox1.Text = l.Substring(4);
+                            button4_Click(null,null);
+                            continue;
+                        }
+                       
+                        string[] ls = l.Split('\b');
+                        GroupBox g = new GroupBox();
+                        g.Location = getPoint(ls[1]);
+                        g.Width = int.Parse(ls[2]);
+                        g.Height = int.Parse(ls[3]);
+                        addNewGroupBox(g, ls[0], true);
+                        if (checkedListBox1.Items.Count > 0)
+                        {
+                            for (int i = 0; i < checkedListBox1.Items.Count; i++)
+                            {
+                                if (checkedListBox1.Items[i].ToString() == ls[0])
+                                {
+                                    checkedListBox1.SelectedIndex = i;
+                                    checkedListBox1.SetItemChecked(i, true);                                  
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (File.Exists(@"Work\\Connection.lst"))
+            {
+                using (StreamReader sr = new StreamReader(@"Work\\Connection.lst", Encoding.UTF8))
+                {
+                    string l = "";
+                    while ((l = sr.ReadLine()) != null)
+                    {
+                        string[] ls = l.Split('\b');
+                        Line line = new Line(getPoint(ls[0]));
+                        line.EndPoint = getPoint(ls[1]);
+                        line.startPointtoSender = getPoint(ls[2]);
+                        line.endPointtoSender = getPoint(ls[3]);
+                        foreach (GroupBox g in panel4.Controls)
+                        {
+                            if (g.Name == ls[4])
+                            {
+                                line.srcg = g;
+                            }
+                            if (g.Name == ls[5])
+                            {
+                                line.desg = g;
+                            }
+                        }
+                        lines.Add(line);
+                    }
+                }
+            }
+        }
+        private Point getPoint(string x)
+        {
+            x = x.TrimStart('{').TrimEnd('}');
+            string[] xa = x.Split(',');
+            return new Point(int.Parse(xa[0].TrimStart("X=".ToCharArray())), int.Parse(xa[1].TrimStart("Y=".ToCharArray())));
+        }
+
+        private void TablesForm_SizeChanged(object sender, EventArgs e)
+        {
+            panel4.Height = this.ClientSize.Height- panel1.Height;
+        }
     }
 }

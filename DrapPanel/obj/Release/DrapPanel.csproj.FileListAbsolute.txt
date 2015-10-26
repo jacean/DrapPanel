@@ -21,5 +21,5 @@ F:\ASJ\Part-time\DrapPanel\DrapPanel\obj\Release\DrapPanel.Form2_back.resources
 F:\ASJ\Part-time\DrapPanel\DrapPanel\obj\Release\DrapPanel.tableElement.resources
 F:\ASJ\Part-time\DrapPanel\DrapPanel\obj\Release\DrapPanel.csproj.GenerateResource.Cache
 E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.MainForm.resources
-E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.Lines.resources
-E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.Tables.resources
+E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.LinesForm.resources
+E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.TablesForm.resources
