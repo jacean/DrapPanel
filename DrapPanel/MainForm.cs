@@ -1087,6 +1087,7 @@ namespace DrapPanel
                     }
                     l.ID = listBox1.Items.Count - 1;
                 }
+                listBox1.SelectedIndex = index;
             }
         }
 
@@ -1277,9 +1278,10 @@ namespace DrapPanel
 
         }
 
+        public int index = -1;
         private void listBox1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            int index = listBox1.SelectedIndex;
+             index = listBox1.SelectedIndex;
             foreach (Line l in lines)
             {
                 if (l.ID == index)
@@ -1292,5 +1294,20 @@ namespace DrapPanel
             updateLines();
             
         }
+
+        private void listBox1_MouseClick(object sender, MouseEventArgs e)
+        {
+             index = listBox1.SelectedIndex;
+            foreach (Line l in lines)
+            {
+                if (l.ID == index)
+                {
+                    selectedLine=l;
+                }
+            }
+            updateListBox();
+            updateLines();
+        }
+
     }
 }
