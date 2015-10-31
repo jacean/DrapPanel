@@ -19,59 +19,9 @@ namespace DrapPanel
         }
         string sqltxt = "";
         sqlConn sqlconn = new sqlConn();
+        public bool isCon = false;
 
-        private void addNewGroupBox(GroupBox grp, string name, bool isLoad)
-        {
-            foreach (GroupBox g in panel4.Controls)
-            {
-                if (g.Name == name)
-                {
-                    MessageBox.Show("该表已添加，请不要重复添加已造成混乱~");
-                    return;
-                }
-            }
-            grp.Text = name;
-            grp.Name = name;
-            if (!isLoad)
-            {
-                grp.Width = 200;
-                grp.Height = 100;
-            }
-            grp.Margin = new Padding(0);
-            grp.Padding = new Padding(0);
-            grp.MouseDown += new MouseEventHandler(control_MouseDown);
-            grp.MouseMove += new MouseEventHandler(control_MouseMove);
-            grp.MouseUp += new MouseEventHandler(control_MouseUp);
-            Panel panel = new Panel();
-
-            panel.MouseEnter += new EventHandler(panel_MouseEnter);
-            panel.MouseLeave += new EventHandler(panel_MouseLeave);
-            panel.MouseMove += new MouseEventHandler(panel_MouseMove);
-            panel.MouseClick += new MouseEventHandler(panel_MouseClick);
-           //add label
-            Label tablabel = new Label();
-            tablabel.Font = new Font(tablabel.Font.FontFamily.Name, 20);
-            tablabel.Text = name;
-            tablabel.AutoSize = false;
-            tablabel.TextAlign = ContentAlignment.MiddleCenter;
-
-         
-            panel4.Controls.Add(grp);
-            grp.Controls.Add(panel);
-            panel.Dock = DockStyle.Fill;
-            panel.BackColor = Color.Transparent;
-            panel.Margin = new Padding(0);
-            panel.Padding = new Padding(0);
-            panel.Controls.Add(tablabel);
-            tablabel.Margin = new Padding(0);
-
-            tablabel.Width = panel.Width - 30;
-            tablabel.Height = panel.Height - 30;
-            tablabel.Location = new Point(15, 15);
-
-            panel.BorderStyle = BorderStyle.Fixed3D;
-            tablabel.BorderStyle = BorderStyle.Fixed3D;
-        }
+        
 
       
 
@@ -85,16 +35,40 @@ namespace DrapPanel
             panel4.MouseDown += new MouseEventHandler(panel4_MouseDown);
             panel4.MouseUp += new MouseEventHandler(panel4_MouseUp);
             panel4.MouseWheel += new MouseEventHandler(panel4_MouseWheel);
-
-
-
+            label1.Text = "";
+            label2.Text = "";
             loadData();
-            //updateListBox();
-            //updateLines();
 
-           // panel4.Height = this.ClientSize.Height - panel1.Height;
             
         }
+        private void TablesForm_SizeChanged(object sender, EventArgs e)
+        {
+            panel4.Height = this.ClientSize.Height - panel1.Height;
+        }
+        private void TablesForm_FormClosed(object sender, FormClosedEventArgs e)
+        {//保存数据
+            if (!Directory.Exists(Application.StartupPath + "Work")) Directory.CreateDirectory(Application.StartupPath + "\\Work");
+            using (StreamWriter sw = new StreamWriter(@"Work\\Connection.lst", false, Encoding.UTF8))
+            {
+                foreach (Line l in lines)
+                {
+                    sw.WriteLine(l.StartPoint.ToString() + "\b" + l.EndPoint.ToString() + "\b" + l.startPointtoSender.ToString() + "\b" + l.endPointtoSender.ToString() + "\b" + l.srcg.Name.ToString() + "\b" + l.desg.Name.ToString());
+                }
+            }
+            using (StreamWriter sw = new StreamWriter(@"Work\\Location.lst", false, Encoding.UTF8))
+            {
+                sw.WriteLine("sql:" + textBox1.Text);
+                foreach (GroupBox grp in panel4.Controls)
+                {
+                    sw.WriteLine(grp.Name + "\b" + grp.Location + "\b" + grp.Width.ToString() + "\b" + grp.Height.ToString());
+                }
+            }
+        }
+
+
+        List<Point> pointList = new List<Point>();
+        public bool isMoveForm = false;//是否在拖动画面
+        public Point movestartPoint = Point.Empty;
         void panel4_MouseUp(object sender, MouseEventArgs e)
         {
 
@@ -104,7 +78,6 @@ namespace DrapPanel
                 isMoveForm = false;
             }
         }
-
         void panel4_MouseDown(object sender, MouseEventArgs e)
         {
             int x = e.Location.X;
@@ -161,12 +134,7 @@ namespace DrapPanel
 
             updateLines();
             inLine = false;
-        }
-        List<Point> pointList = new List<Point>();
-        public bool isMoveForm = false;//是否在拖动画面
-        public Point movestartPoint = Point.Empty;
-
-
+        }       
         /// <summary>
         /// 在绘图区移动鼠标时，如果正在绘制新线条，就更新绘制面板
         /// </summary>
@@ -214,7 +182,6 @@ namespace DrapPanel
 
 
         }
-
         void panel4_MouseWheel(object sender, MouseEventArgs e)
         {
             if (panel4.Focus())
@@ -282,7 +249,6 @@ namespace DrapPanel
                 updateLines();
             }
         }
-
         /// <summary>
         /// 绘制效果到面板
         /// </summary>
@@ -333,12 +299,12 @@ namespace DrapPanel
 
 
         }
-
         private void panel4_MouseEnter(object sender, EventArgs e)
         {
 
             this.panel4.Focus();
         }
+
 
 
         #region controlevent 移动控件
@@ -423,7 +389,6 @@ namespace DrapPanel
 
         #endregion
 
-        Rectangle rec = Rectangle.Empty;
 
         bool mDown = false;
         object src;
@@ -500,8 +465,6 @@ namespace DrapPanel
 
            
         }
-
-
         void panel_MouseMove(object sender, MouseEventArgs e)
         {
             if (drawingLine != null)
@@ -515,7 +478,6 @@ namespace DrapPanel
                 this.Refresh();
             }
         }
-
         private void panel_MouseEnter(object sender, EventArgs e)
         {
             des = sender;
@@ -537,7 +499,6 @@ namespace DrapPanel
           
           
         }
-
         private void panel_MouseLeave(object sender, EventArgs e)
         {
 
@@ -696,54 +657,8 @@ namespace DrapPanel
 
         #endregion
 
-        private Point getPointToForm(Control control, Point p)
-        {
+       
 
-            return this.PointToClient(control.PointToScreen(p));
-        }
-
-
-        private void updateLines()
-        {
-
-            Point itemstartPoint = Point.Empty;
-            Point itemendPoint = Point.Empty;
-           
-            this.Invalidate();
-            this.Refresh();
-
-        }
-
-        private void updateListBox()
-        {
-            if (lines.Count > 0 && drawingLine == null)
-            {
-                listBox1.Items.Clear();
-                foreach (Line l in lines)
-                {
-
-                    string showText = "";
-                    showText = "[起点:" + l.srcg.Name + "]+--+";
-
-                   
-                    showText += "[终点:" + l.desg.Name + "]";
-                    foreach (Control cp in l.desg.Controls)
-                    
-
-                    if (l.srcg.Visible&&l.desg.Visible)
-                    {
-                       
-                            listBox1.Items.Add("Show-" + showText);
-                    }
-                    else
-                    {
-                        listBox1.Items.Add("Hide-" + showText);
-                    }
-                    l.ID = listBox1.Items.Count - 1;
-                }
-                listBox1.SelectedIndex = index;
-            }
-        }
         public int index = -1;
         private void listBox1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
@@ -761,7 +676,6 @@ namespace DrapPanel
             updateLines();
 
         }
-
         private void listBox1_MouseClick(object sender, MouseEventArgs e)
         {
             index = listBox1.SelectedIndex;
@@ -774,33 +688,6 @@ namespace DrapPanel
             }
             updateListBox();
             updateLines();
-        }
-
-        private void button4_Click(object sender, EventArgs e)
-        {
-            //textBox1.Text = "Data Source=ELAB-SQ252L;Initial Catalog=student;Persist Security Info=True;User ID=ta;Password=elab2013";
-            sqltxt = textBox1.Text;
-            try
-            {
-                sqlconn.sqlconn(sqltxt, "SQL");
-            }
-            catch (Exception ex)
-            {
-                label1.Text = "数据库未连接或连接失败。。。";
-                return;
-            }
-            label1.Text = "数据库连接成功";
-
-           
-            DataTable dt = sqlconn.getVector("SELECT Name FROM SysObjects Where XType='U' ORDER BY Name");
-            for (int i = 0; i < dt.Rows.Count; i++)
-            {
-               
-                checkedListBox1.Items.Add(dt.Rows[i][0].ToString());
-
-            }
-          
-
         }
         private void checkedListBox1_ItemCheck(object sender, ItemCheckEventArgs e)
         {
@@ -831,8 +718,52 @@ namespace DrapPanel
             }
 
             updateLines();
-           
+
         }
+
+        public bool isDelete = false;
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (isDelete == false)
+            {
+                isDelete = true;
+                button2.Text = "选中线条以删除";
+            }
+            else
+            {
+                isDelete = false;
+                button2.Text = "要删除点我";
+            }
+        }
+        private void button4_Click(object sender, EventArgs e)
+        {
+            //textBox1.Text = "Data Source=ELAB-SQ252L;Initial Catalog=student;Persist Security Info=True;User ID=ta;Password=elab2013";
+            sqltxt = textBox1.Text;
+            try
+            {
+                sqlconn.sqlconn(sqltxt, "SQL");
+            }
+            catch (Exception ex)
+            {
+                label2.Text = "数据库未连接或连接失败。。。";
+                isCon = false;
+                return;
+            }
+            label2.Text = "数据库连接成功";
+            isCon = true;
+
+           
+            DataTable dt = sqlconn.getVector("SELECT Name FROM SysObjects Where XType='U' ORDER BY Name");
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+               
+                checkedListBox1.Items.Add(dt.Rows[i][0].ToString());
+
+            }
+          
+
+        }
+        
         private void isInline(int x, int y)
         {
             #region 判断鼠标是否选中线，如果选中的话inline=true，同时moveline被赋值和添加
@@ -923,39 +854,57 @@ namespace DrapPanel
             #endregion
 
         }
-        public bool isDelete = false;
-        private void button2_Click(object sender, EventArgs e)
+        private void addNewGroupBox(GroupBox grp, string name, bool isLoad)
         {
-            if (isDelete == false)
+            foreach (GroupBox g in panel4.Controls)
             {
-                isDelete = true;
-                button2.Text = "选中线条以删除";
+                if (g.Name == name)
+                {
+                    MessageBox.Show("该表已添加，请不要重复添加已造成混乱~");
+                    return;
+                }
             }
-            else
+            grp.Text = name;
+            grp.Name = name;
+            if (!isLoad)
             {
-                isDelete = false;
-                button2.Text = "要删除点我";
+                grp.Width = 200;
+                grp.Height = 100;
             }
-        }
+            grp.Margin = new Padding(0);
+            grp.Padding = new Padding(0);
+            grp.MouseDown += new MouseEventHandler(control_MouseDown);
+            grp.MouseMove += new MouseEventHandler(control_MouseMove);
+            grp.MouseUp += new MouseEventHandler(control_MouseUp);
+            Panel panel = new Panel();
 
-        private void TablesForm_FormClosed(object sender, FormClosedEventArgs e)
-        {//保存数据
-            if (!Directory.Exists(Application.StartupPath + "Work")) Directory.CreateDirectory(Application.StartupPath + "\\Work");
-            using (StreamWriter sw = new StreamWriter(@"Work\\Connection.lst", false, Encoding.UTF8))
-            {
-                foreach (Line l in lines)
-                {
-                    sw.WriteLine(l.StartPoint.ToString() + "\b" + l.EndPoint.ToString() + "\b" + l.startPointtoSender.ToString() + "\b" + l.endPointtoSender.ToString() + "\b" + l.srcg.Name.ToString() + "\b" + l.desg.Name.ToString());
-                }
-            }
-            using (StreamWriter sw = new StreamWriter(@"Work\\Location.lst", false, Encoding.UTF8))
-            {
-                sw.WriteLine("sql:" + textBox1.Text);
-                foreach (GroupBox grp in panel4.Controls)
-                {
-                    sw.WriteLine(grp.Name + "\b" + grp.Location + "\b" + grp.Width.ToString() + "\b" + grp.Height.ToString());
-                }
-            }
+            panel.MouseEnter += new EventHandler(panel_MouseEnter);
+            panel.MouseLeave += new EventHandler(panel_MouseLeave);
+            panel.MouseMove += new MouseEventHandler(panel_MouseMove);
+            panel.MouseClick += new MouseEventHandler(panel_MouseClick);
+            //add label
+            Label tablabel = new Label();
+            tablabel.Font = new Font(tablabel.Font.FontFamily.Name, 20);
+            tablabel.Text = name;
+            tablabel.AutoSize = false;
+            tablabel.TextAlign = ContentAlignment.MiddleCenter;
+
+
+            panel4.Controls.Add(grp);
+            grp.Controls.Add(panel);
+            panel.Dock = DockStyle.Fill;
+            panel.BackColor = Color.Transparent;
+            panel.Margin = new Padding(0);
+            panel.Padding = new Padding(0);
+            panel.Controls.Add(tablabel);
+            tablabel.Margin = new Padding(0);
+
+            tablabel.Width = panel.Width - 30;
+            tablabel.Height = panel.Height - 30;
+            tablabel.Location = new Point(15, 15);
+
+            panel.BorderStyle = BorderStyle.Fixed3D;
+            tablabel.BorderStyle = BorderStyle.Fixed3D;
         }
         private void loadData()
         {
@@ -969,7 +918,13 @@ namespace DrapPanel
                         {
                             textBox1.Text = l.Substring(4);
                             button4_Click(null,null);
+                        if(isCon)
                             continue;
+                        else
+                        {
+                            textBox1.Text = "请输入连接字符串";
+                            return;
+                        }
                         }
                        
                         string[] ls = l.Split('\b');
@@ -1026,10 +981,50 @@ namespace DrapPanel
             string[] xa = x.Split(',');
             return new Point(int.Parse(xa[0].TrimStart("X=".ToCharArray())), int.Parse(xa[1].TrimStart("Y=".ToCharArray())));
         }
-
-        private void TablesForm_SizeChanged(object sender, EventArgs e)
+        private Point getPointToForm(Control control, Point p)
         {
-            panel4.Height = this.ClientSize.Height- panel1.Height;
+
+            return this.PointToClient(control.PointToScreen(p));
+        }
+        private void updateLines()
+        {
+
+            Point itemstartPoint = Point.Empty;
+            Point itemendPoint = Point.Empty;
+
+            this.Invalidate();
+            this.Refresh();
+
+        }
+        private void updateListBox()
+        {
+            if (lines.Count > 0 && drawingLine == null)
+            {
+                listBox1.Items.Clear();
+                foreach (Line l in lines)
+                {
+
+                    string showText = "";
+                    showText = "[起点:" + l.srcg.Name + "]+--+";
+
+
+                    showText += "[终点:" + l.desg.Name + "]";
+                    foreach (Control cp in l.desg.Controls)
+
+
+                        if (l.srcg.Visible && l.desg.Visible)
+                        {
+
+                            listBox1.Items.Add("Show-" + showText);
+                        }
+                        else
+                        {
+                            listBox1.Items.Add("Hide-" + showText);
+                        }
+                    l.ID = listBox1.Items.Count - 1;
+                }
+                listBox1.SelectedIndex = index;
+            }
         }
     }
 }

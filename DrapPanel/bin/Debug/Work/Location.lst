@@ -1,4 +1,9 @@
 ﻿sql:Data Source=ELAB-SQ252L;Initial Catalog=student;Persist Security Info=True;User ID=ta;Password=elab2013
-dtproperties{X=451,Y=249}14883
-IP_MAC{X=184,Y=238}14883
-newmember{X=385,Y=54}14883
+Comp_Count{X=400,Y=92}18595
+dtproperties{X=184,Y=189}18595
+duty{X=114,Y=77}18595
+Duty_w{X=423,Y=232}18595
+IP_MAC{X=80,Y=276}18595
+Log{X=61,Y=15}18595
+member{X=61,Y=15}18595
+newmember{X=0,Y=0}200100
