@@ -11,10 +11,10 @@
 *.userprefs
 
 # Build results
-[Dd]ebug/
 #i add 
 ![Dd]ebug/Work/
-
+###########
+[Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
