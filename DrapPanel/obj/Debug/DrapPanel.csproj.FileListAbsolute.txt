@@ -19,3 +19,4 @@ E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Properties.Resources.resource
 E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.csproj.GenerateResource.Cache
 E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.pdb
 E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.MainForm.resources
+E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.temp.resources

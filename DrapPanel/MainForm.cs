@@ -31,61 +31,18 @@ namespace DrapPanel
             panel4.MouseDown += new MouseEventHandler(panel4_MouseDown);
             panel4.MouseUp += new MouseEventHandler(panel4_MouseUp);
             panel4.MouseWheel += new MouseEventHandler(panel4_MouseWheel);
-            
-            
-          
+
+
+            this.DoubleBuffered = true;
+            this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+           
             loadData();
             updateListBox();
             updateLines();
             
             panel4.Height=this.ClientSize.Height-panel1.Height;
 
-        }
-
-       
-
-        private void button4_Click(object sender, EventArgs e)
-        {
-            sqltxt = textBox1.Text;
-            //sqltxt="Data Source=ELAB-SQ252L;Initial Catalog=student;Persist Security Info=True;User ID=ta;Password=elab2013";
-            
-            try
-            {
-                sqlconn.sqlconn(sqltxt, "SQL");
-            }
-            catch (Exception ex)
-            {
-                label1.Text = "数据库未连接或连接失败。。。";
-                return;
-            }
-            label1.Text = "数据库连接成功";
-            
-            this.DoubleBuffered = true;
-            this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
-            DataTable dt = sqlconn.getVector("SELECT Name FROM SysObjects Where XType='U' ORDER BY Name");
-            for (int i = 0; i < dt.Rows.Count; i++)
-            {
-                comboBox1.Items.Add(dt.Rows[i][0].ToString());
-
-            }
-            comboBox1.SelectedIndex = 0;
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            if (sqlconn.cn_Sql != null)
-            {
-                
-                    GroupBox grp = new GroupBox();
-                    addNewGroupBox(grp, comboBox1.Text,false);
-                
-            }
-            else
-            {
-                MessageBox.Show("数据库尚未连接。。。");
-            }
-            
-        }
+        }   
 
    
         void panel4_MouseUp(object sender, MouseEventArgs e)
@@ -145,7 +102,7 @@ namespace DrapPanel
                     isMoveForm = true;
                     movestartPoint = e.Location;
                     pointList.Clear();
-                    foreach (GroupBox gr in panel4.Controls)
+                    foreach (GroupBox gr in panel4.Controls.OfType<GroupBox>())
                     {
                         pointList.Add(gr.Location);
                     }
@@ -235,7 +192,7 @@ namespace DrapPanel
         /// <param name="e"></param>
         void panel4_MouseMove(object sender, MouseEventArgs e)
         {
-            label1.Text = getPointToForm((Control)sender, e.Location).ToString();
+            label1.Text = "在panle4中移动"+getPointToForm().ToString();
            
             if (startPaint && location == 0)
             {
@@ -258,7 +215,7 @@ namespace DrapPanel
                
                 //移动容器,依靠的是系统对groupbox的遍历是一致的顺序
                 int i = 0;
-                foreach (GroupBox grp in panel4.Controls)
+                foreach (GroupBox grp in panel4.Controls.OfType<GroupBox>())
                 {
 
                     grp.Left = pointList[i].X-movestartPoint.X+e.X;
@@ -293,7 +250,7 @@ namespace DrapPanel
                     Mo = 0.98f;
                 }
                 #region 移动控件
-                foreach (Control ct in this.panel4.Controls)
+                foreach (Control ct in this.panel4.Controls.OfType<GroupBox>())
                 {//看成是点的移动
 
                     if (ct.Width < 60 | ct.Height< 60)
@@ -336,7 +293,7 @@ namespace DrapPanel
 
             Bitmap bp = new Bitmap(panel4.Width, panel4.Height); // 用于缓冲输出的位图对象
             //Bitmap bp = new Bitmap(this.Width, this.Height); // 用于缓冲输出的位图对象
-
+            
             Graphics g = Graphics.FromImage(bp);
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias; // 消锯齿（可选项）
             Pen p = new Pen(Color.Black);
@@ -358,7 +315,7 @@ namespace DrapPanel
             }
             // 将缓冲位图绘制到输出
             //e.Graphics.DrawImage(bp, Point.Empty);
-            e.Graphics.DrawImage(bp, panel4.Location);
+            e.Graphics.DrawImage(bp,new Point(0,0));//设置画布坐标,相对于panel4的
             //移动容器
             if (rect != Rectangle.Empty)
             {
@@ -402,10 +359,11 @@ namespace DrapPanel
                 int height = 0;
                 int dsX = 0;//用来判断在左还是右
                 GroupBox gg = (GroupBox)(((Panel)sender).Parent);
-                if (this.PointToClient(Control.MousePosition).X > gg.Location.X + gg.Width / 2)
+                if ( getPointToForm().X > gg.Location.X + gg.Width / 2)
                 {
                     dsX = gg.Width;
                 }
+                label3.Text = gg.Location.ToString();
                 foreach (ListView lv in ((Panel)sender).Controls)
                 {
                      
@@ -436,7 +394,7 @@ namespace DrapPanel
                         location = 1;
                         startPaint = true;
 
-                        
+                        label3.Text=(new Point(gg.Location.X + dsX, itemPoint.Y + height / 2 + gg.Location.Y)).ToString();
                         startDrawingFunc(new Point(gg.Location.X+dsX, itemPoint.Y +height / 2+gg.Location.Y));
                         drawingLine.srcg = gg;
                         drawingLine.srcg_itemIndex = selectedIndex;
@@ -457,7 +415,8 @@ namespace DrapPanel
                             drawingLine.desg = (GroupBox)(((Panel)sender).Parent);
                             drawingLine.desg_itemIndex = selectedIndex;
                             drawingLine.dsX_des = dsX;
-                           
+
+                            label3.Text = (new Point(gg.Location.X + dsX, itemPoint.Y + height / 2 + gg.Location.Y)).ToString();
                             endDrawingFunc(new Point(gg.Location.X+dsX, (itemPoint.Y + height / 2+gg.Location.Y)));//
                            
                            
@@ -496,9 +455,7 @@ namespace DrapPanel
                
                 if (startPaint && location == 2)
                 {
-
-
-                    drawingLine.EndPoint = this.getPointToForm((Control)sender, e.Location);
+                    drawingLine.EndPoint = getPointToForm();
                 }
                 this.Invalidate();
                 this.Refresh();
@@ -608,7 +565,7 @@ namespace DrapPanel
         /// <param name="e"></param>
         void endDrawingFunc( Point e)
         {
-           
+            
             if (drawingLine == null) return;
 
 
@@ -636,13 +593,7 @@ namespace DrapPanel
         /// <param name="e"></param>
         void startDrawingFunc( Point e)
         {
-            //int x=e.Location.X;
-            //int y=e.Location.Y;
-            int x = e.X;
-            int y = e.Y;
-       
-                drawingLine = new Line(e);
-      
+            drawingLine = new Line(e);      
                 lines.Add(drawingLine);
 
             //}
@@ -681,28 +632,29 @@ namespace DrapPanel
             if (e.Button == MouseButtons.Left)
             {
                 mouseDownPoint = e.Location;
+                label3.Text ="中间点"+ mouseDownPoint.ToString();
                 //记录控件的大小
                 GroupBox g = (GroupBox)sender;
                 //g.Visible = false;
                 rect = g.Bounds;
-
             }
         }
 
 
         void control_MouseMove(object sender, MouseEventArgs e)
         {
-            label1.Text = getPointToForm((Control)sender, e.Location).ToString();
+           
             if (e.Button == MouseButtons.Left)
             {
                 isDrag = true;
                 //重新设置rect的位置，跟随鼠标移动
-                rect.Location = getPointToForm((Control)sender,new Point(e.Location.X - mouseDownPoint.X, e.Location.Y - mouseDownPoint.Y));
-                
+                Point p = getPointToForm();
+                rect.Location = new Point(p.X - mouseDownPoint.X, p.Y - mouseDownPoint.Y);
+                label3.Text = "中间点" + mouseDownPoint.ToString();
                 //设置线条的跟随变化
                 GroupBox g = (GroupBox)sender;
                 g.Location = rect.Location;
-
+                label1.Text = g.Location.ToString();
                
                 
                 updateLines();
@@ -737,10 +689,10 @@ namespace DrapPanel
 
         #endregion
         
-        private Point getPointToForm(Control control, Point p)
+        private Point getPointToForm()
         {
-           
-            return this.PointToClient(control.PointToScreen(p));
+            return panel4.PointToClient(Control.MousePosition);
+            //return this.PointToClient(control.PointToScreen(p));
         }
 
         private void Form4_SizeChanged(object sender, EventArgs e)
@@ -760,7 +712,7 @@ namespace DrapPanel
             using (StreamWriter sw = new StreamWriter(@"Control.lst", false, Encoding.UTF8))
             {
                 sw.WriteLine("sql:"+textBox1.Text);
-                foreach (GroupBox grp in panel4.Controls)
+                foreach (GroupBox grp in panel4.Controls.OfType<GroupBox>())
                 {
                     sw.WriteLine(grp.Name+"\b"+grp.Location+"\b"+grp.Width.ToString()+"\b"+grp.Height.ToString());
                 }
@@ -779,7 +731,7 @@ namespace DrapPanel
                         if (l.StartsWith("sql:"))
                         {
                             textBox1.Text = l.Substring(4);
-                            button4_Click(null,null);
+                            button5_Click(null,null);
                             continue;
                         }
                         if (sqlconn.cn_Sql==null|| sqlconn.cn_Sql.State==ConnectionState.Connecting)
@@ -791,7 +743,7 @@ namespace DrapPanel
                         g.Location = getPoint(ls[1]);
                         g.Width = int.Parse(ls[2]);
                         g.Height = int.Parse(ls[3]);
-                        addNewGroupBox(g, ls[0],true);
+                        addNewGroupBox(g,ls[0] ,ls[0],true);//这里要改，读取的时候也应该只读取两个表
                         
                     }
                 }
@@ -824,7 +776,7 @@ namespace DrapPanel
                         index_des = int.Parse(ls[3]);
                         
                        
-                        foreach (GroupBox g in panel4.Controls)
+                        foreach (GroupBox g in panel4.Controls.OfType<GroupBox>())
                         {
                             if (g.Name == ls[4])
                             {
@@ -904,11 +856,11 @@ namespace DrapPanel
             string[] xa = x.Split(',');
             return new Point(int.Parse(xa[0].TrimStart("X=".ToCharArray())),int.Parse(xa[1].TrimStart("Y=".ToCharArray())));
         }
-        private void  addNewGroupBox(GroupBox grp,string name,bool isLoad)
+        private void  addNewGroupBox(GroupBox grp,string name,string text,bool isLoad)
         {
-            foreach (GroupBox g in panel4.Controls)
+            foreach (GroupBox g in panel4.Controls.OfType<GroupBox>())
             {
-                if (g.Name == name)
+                if (g.Name == text)
                 {
                     MessageBox.Show("该表已添加，请不要重复添加已造成混乱~");
                     return;
@@ -916,8 +868,8 @@ namespace DrapPanel
             }
             DataTable tblFields = sqlconn.cn_Sql.GetSchema(SqlClientMetaDataCollectionNames.Columns);
          
-            grp.Text = name;
-            grp.Name = name;
+            grp.Text = text;
+            grp.Name = text;
             if (!isLoad)
             {
                 grp.Width = 150;
@@ -954,7 +906,7 @@ namespace DrapPanel
             //数据更新，UI暂时挂起，直到EndUpdate绘制控件，可以有效避免闪烁并大大提高加载速度
             for (int i = 0; i < tblFields.Rows.Count; i++)
             {
-                if (tblFields.Rows[i]["Table_Name"].ToString() ==name)
+                if (tblFields.Rows[i]["Table_Name"].ToString() ==text)
                 {
                     ListViewItem lvi = new ListViewItem();
                     // lvi.ImageIndex = i;     //通过与imageList绑定，显示imageList中第i项图标
@@ -978,6 +930,7 @@ namespace DrapPanel
             lv.Width = panel.Width - 30;
             lv.Height = panel.Height - 30;
             lv.Location = new Point(15, 15);
+            grp.BringToFront();
         }
 
         void lv_Scroll(object sender, ScrollEventArgs e)
@@ -1008,7 +961,7 @@ namespace DrapPanel
             {
                 bool isExist = false;
                 string name = comboBox1.Text;
-                foreach (GroupBox g in panel4.Controls)
+                foreach (GroupBox g in panel4.Controls.OfType<GroupBox>())
                 {
                     if (g.Name == name)
                     {
@@ -1308,6 +1261,131 @@ namespace DrapPanel
             updateListBox();
             updateLines();
         }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            sqltxt = textBox1.Text;
+            try
+            {
+                sqlconn.sqlconn(sqltxt, "SQL");
+            }
+            catch (Exception ex)
+            {
+                label1.Text = "数据库未连接或连接失败。。。";
+
+                return;
+            }
+            DataTable dt = sqlconn.getVector("SELECT Name,crdate FROM SysObjects Where XType='U' ORDER BY Name");
+            dataGridView1.DataSource = dt.DefaultView;
+            comboBox1.DataSource = dt;
+            comboBox2.DataSource = dt.Copy();
+            comboBox1.DisplayMember = "name";
+            comboBox2.DisplayMember = "name";
+            comboBox1.ValueMember = "name";
+            comboBox2.ValueMember = "name";
+            comboBox1.AutoCompleteSource = AutoCompleteSource.ListItems;
+            comboBox1.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            comboBox2.AutoCompleteSource = AutoCompleteSource.ListItems;
+            comboBox2.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            comboBox2.SelectedIndex = -1;
+            
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBox1.Text == "") return;
+            bool isExist = false;
+            if (sqlconn.cn_Sql != null)
+            {
+                foreach (GroupBox g in panel4.Controls.OfType<GroupBox>())
+                {
+                    if (g.Name == "table1" )
+                    {
+                        isExist = true;
+                        if (g.Text != comboBox1.Text)
+                        {
+                            string name = comboBox1.Text;
+                            List<Line> templines = new List<Line>();
+                            foreach (Line l in lines)
+                            {
+                                if (l.srcg == g || l.desg == g)
+                                {
+                                    templines.Add(l);
+                                    continue;
+                                }
+                            }
+                            lines = lines.Except(templines).ToList<Line>();
+
+                            panel4.Controls.Remove(g);
+                            GroupBox grp = new GroupBox();
+                            addNewGroupBox(grp, "table1", comboBox1.Text, false);
+                            this.Invalidate();
+                            this.Refresh();                            
+                        }                      
+                    }
+                }
+                if (!isExist)
+                {
+                    GroupBox grp = new GroupBox();
+                    addNewGroupBox(grp, "table1", comboBox1.Text, false);
+                }
+
+            }
+            else
+            {
+                MessageBox.Show("数据库尚未连接。。。");
+            }
+        }
+
+        private void comboBox2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboBox2.Text == "") return;
+            bool isExist = false;
+            if (sqlconn.cn_Sql != null)
+            {
+                foreach (GroupBox g in panel4.Controls.OfType<GroupBox>())
+                {
+                    if (g.Name == "table2")
+                    {
+                        isExist = true;
+                        if (g.Text != comboBox2.Text)
+                        {
+                            string name = comboBox1.Text;
+                            List<Line> templines = new List<Line>();
+                            foreach (Line l in lines)
+                            {
+                                if (l.srcg == g || l.desg == g)
+                                {
+                                    templines.Add(l);
+                                    continue;
+                                }
+                            }
+                            lines = lines.Except(templines).ToList<Line>();
+
+                            panel4.Controls.Remove(g);
+                            GroupBox grp = new GroupBox();
+                            addNewGroupBox(grp, "table2", comboBox2.Text, false);
+                            this.Invalidate();
+                            this.Refresh();
+                        }
+                    }
+                }
+                if (!isExist)
+                {
+                    GroupBox grp = new GroupBox();
+                    addNewGroupBox(grp, "table2", comboBox2.Text, false);
+                }
+
+            }
+            else
+            {
+                MessageBox.Show("数据库尚未连接。。。");
+            }
+        }
+
+
+      
+    
 
     }
 }
