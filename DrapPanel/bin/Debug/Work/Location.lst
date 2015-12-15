@@ -1,9 +1,11 @@
 ﻿sql:Data Source=ELAB-SQ252L;Initial Catalog=student;Persist Security Info=True;User ID=ta;Password=elab2013
-Comp_Count{X=525,Y=72}18595
-dtproperties{X=184,Y=189}18595
-duty{X=305,Y=25}18595
-Duty_w{X=423,Y=232}18595
-IP_MAC{X=80,Y=276}18595
-Log{X=648,Y=209}18595
-member{X=61,Y=15}18595
-newmember{X=0,Y=0}200100
+Comp_Count{X=498,Y=37}11168
+dtproperties{X=715,Y=172}11168
+duty{X=696,Y=67}11168
+Duty_w{X=501,Y=114}11168
+IP_MAC{X=348,Y=293}11168
+Log{X=718,Y=266}11168
+member{X=106,Y=257}11168
+newmember{X=257,Y=131}12772
+开学日期{X=379,Y=179}16087
+VerList{X=102,Y=28}14079
