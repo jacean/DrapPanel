@@ -33,7 +33,6 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
-            this.button3 = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.panel4 = new System.Windows.Forms.Panel();
@@ -42,8 +41,8 @@
             this.button5 = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.comboBox2 = new System.Windows.Forms.ComboBox();
-            this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.cb2 = new System.Windows.Forms.ComboBox();
+            this.cb1 = new System.Windows.Forms.ComboBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -70,7 +69,6 @@
             this.panel1.Controls.Add(this.label3);
             this.panel1.Controls.Add(this.label12);
             this.panel1.Controls.Add(this.label11);
-            this.panel1.Controls.Add(this.button3);
             this.panel1.Controls.Add(this.button2);
             this.panel1.Controls.Add(this.listBox1);
             this.panel1.Controls.Add(this.label1);
@@ -106,19 +104,9 @@
             this.label11.TabIndex = 12;
             this.label11.Text = "label11";
             // 
-            // button3
-            // 
-            this.button3.Location = new System.Drawing.Point(266, 3);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(93, 23);
-            this.button3.TabIndex = 11;
-            this.button3.Text = "delete Table";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
-            // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(266, 40);
+            this.button2.Location = new System.Drawing.Point(15, 3);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(89, 23);
             this.button2.TabIndex = 10;
@@ -152,8 +140,8 @@
             this.panel2.Controls.Add(this.button5);
             this.panel2.Controls.Add(this.textBox1);
             this.panel2.Controls.Add(this.dataGridView1);
-            this.panel2.Controls.Add(this.comboBox2);
-            this.panel2.Controls.Add(this.comboBox1);
+            this.panel2.Controls.Add(this.cb2);
+            this.panel2.Controls.Add(this.cb1);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel2.Location = new System.Drawing.Point(3, 3);
             this.panel2.Name = "panel2";
@@ -164,7 +152,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(3, 438);
+            this.label2.Location = new System.Drawing.Point(3, 534);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(41, 12);
             this.label2.TabIndex = 11;
@@ -172,7 +160,7 @@
             // 
             // button5
             // 
-            this.button5.Location = new System.Drawing.Point(75, 433);
+            this.button5.Location = new System.Drawing.Point(94, 534);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(51, 23);
             this.button5.TabIndex = 10;
@@ -182,10 +170,10 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(5, 267);
+            this.textBox1.Location = new System.Drawing.Point(5, 372);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(122, 160);
+            this.textBox1.Size = new System.Drawing.Size(140, 141);
             this.textBox1.TabIndex = 9;
             this.textBox1.Text = "Data Source=ELAB-SQ252L;Initial Catalog=student;Persist Security Info=True;User I" +
                 "D=ta;Password=elab2013";
@@ -201,26 +189,26 @@
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowHeadersVisible = false;
             this.dataGridView1.RowTemplate.Height = 23;
-            this.dataGridView1.Size = new System.Drawing.Size(122, 160);
+            this.dataGridView1.Size = new System.Drawing.Size(138, 295);
             this.dataGridView1.TabIndex = 8;
             // 
-            // comboBox2
+            // cb2
             // 
-            this.comboBox2.FormattingEnabled = true;
-            this.comboBox2.Location = new System.Drawing.Point(5, 33);
-            this.comboBox2.Name = "comboBox2";
-            this.comboBox2.Size = new System.Drawing.Size(121, 20);
-            this.comboBox2.TabIndex = 7;
-            this.comboBox2.SelectedIndexChanged += new System.EventHandler(this.comboBox2_SelectedIndexChanged);
+            this.cb2.FormattingEnabled = true;
+            this.cb2.Location = new System.Drawing.Point(5, 33);
+            this.cb2.Name = "cb2";
+            this.cb2.Size = new System.Drawing.Size(140, 20);
+            this.cb2.TabIndex = 7;
+            this.cb2.SelectedIndexChanged += new System.EventHandler(this.cb_SelectedIndexChanged);
             // 
-            // comboBox1
+            // cb1
             // 
-            this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Location = new System.Drawing.Point(5, 7);
-            this.comboBox1.Name = "comboBox1";
-            this.comboBox1.Size = new System.Drawing.Size(121, 20);
-            this.comboBox1.TabIndex = 6;
-            this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
+            this.cb1.FormattingEnabled = true;
+            this.cb1.Location = new System.Drawing.Point(5, 7);
+            this.cb1.Name = "cb1";
+            this.cb1.Size = new System.Drawing.Size(140, 20);
+            this.cb1.TabIndex = 6;
+            this.cb1.SelectedIndexChanged += new System.EventHandler(this.cb_SelectedIndexChanged);
             // 
             // tableLayoutPanel1
             // 
@@ -267,7 +255,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Panel panel4;
         private System.Windows.Forms.ListBox listBox1;
-        private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Label label12;
@@ -276,8 +263,8 @@
         private System.Windows.Forms.Button button5;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.DataGridView dataGridView1;
-        private System.Windows.Forms.ComboBox comboBox2;
-        private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.ComboBox cb2;
+        private System.Windows.Forms.ComboBox cb1;
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Label label3;
     }
