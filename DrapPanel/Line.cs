@@ -21,6 +21,7 @@ namespace DrapPanel
         public bool isShow = true;
         public Color color = Color.Black;
         public string tag = "添加标签";
+        public int direct = 0;
         public Line(Point startPoint)
         {
             StartPoint = startPoint;

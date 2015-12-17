@@ -37,7 +37,7 @@ namespace DrapPanel
             this.DoubleBuffered = true;
             this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
            
-            //loadData();
+            
             updateListBox();
             updateLines();
             
@@ -79,7 +79,7 @@ namespace DrapPanel
                     {//弹出窗体
 
                         string showText = "";
-                        showText = "起点:" + selectedLine.srcg.Name + "->";
+                        showText = "起点:" + selectedLine.srcg.Text + "->";
 
                         foreach (Control cp in selectedLine.srcg.Controls)
                         {
@@ -88,7 +88,7 @@ namespace DrapPanel
                                 showText += lv.Items[selectedLine.srcg_itemIndex].Text + "\n";
                             }
                         }
-                        showText += "终点:" + selectedLine.desg.Name + "->";
+                        showText += "终点:" + selectedLine.desg.Text + "->";
                         foreach (Control cp in selectedLine.desg.Controls)
                         {
                             foreach (ListView lv in cp.Controls)
@@ -116,7 +116,7 @@ namespace DrapPanel
                 if (inLine)
                 {
                      string showText = "选中线:\n";
-                        showText += "起点:" + selectedLine.srcg.Name + "->";
+                        showText += "起点:" + selectedLine.srcg.Text + "->";
 
                         foreach (Control cp in selectedLine.srcg.Controls)
                         {
@@ -125,7 +125,7 @@ namespace DrapPanel
                                 showText += lv.Items[selectedLine.srcg_itemIndex].Text + "\n";
                             }
                         }
-                        showText += "终点:" + selectedLine.desg.Name + "->";
+                        showText += "终点:" + selectedLine.desg.Text + "->";
                         foreach (Control cp in selectedLine.desg.Controls)
                         {
                             foreach (ListView lv in cp.Controls)
@@ -138,11 +138,7 @@ namespace DrapPanel
                     rM.Items.Clear();
                     rM.Items.Add(showText);
                     rM.Items.Add("颜色");
-                    rM.Items.Add("隐藏");
-                    ToolStripTextBox mtxt = new ToolStripTextBox();
-                    mtxt.Text = selectedLine.tag;
-                    mtxt.KeyDown += new KeyEventHandler(mtxt_KeyDown);
-                    rM.Items.Add(mtxt);
+                    rM.Items.Add("隐藏");         
                     rM.Items[0].Enabled = false;
                     rM.Items[1].Click += new EventHandler(item1_Click);
                     rM.Items[2].Click+=new EventHandler(item2_Click);
@@ -153,15 +149,16 @@ namespace DrapPanel
             inLine = false;
         }
 
-        void mtxt_KeyDown(object sender, KeyEventArgs e)
+        void tagTxt_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Enter)
-            {
-                selectedLine.tag = ((ToolStripTextBox)sender).Text;
 
-            }
         }
-
+        private void tagTxt_Leave(object sender, EventArgs e)
+        {
+            if (selectedLine == null) return;
+            selectedLine.tag = tagTxt.Text;
+            function.updateTag(selectedLine);
+        }
         
 
         void item1_Click(object sender, EventArgs e)
@@ -314,18 +311,29 @@ namespace DrapPanel
                     {
                         p.Color = line.color;
                     }
-                    //通过两个表的位置来决定画在左边还是右边
-                    if (line.srcg.Location.X > line.desg.Location.X)
+                    //通过两个表的位置来决定画在左边还是右边,注意正在画的线是没有desg的\
+                    if (line != drawingLine)
                     {
-                        line.StartPoint.X = line.srcg.Location.X;
-                        line.EndPoint.X = line.desg.Location.X + line.desg.Width;
+
+                        if (line.srcg.Location.X > line.desg.Location.X)
+                        {
+                            line.StartPoint.X = line.srcg.Location.X;
+                            line.EndPoint.X = line.desg.Location.X + line.desg.Width;
+                        }
+                        else
+                        {
+                            line.StartPoint.X = line.srcg.Location.X + line.srcg.Width;
+                            line.EndPoint.X = line.desg.Location.X;
+                        }
+                    }
+                    if (line.direct == 2)
+                    {
+                        p.CustomStartCap = lineCap;
                     }
                     else
                     {
-                        line.StartPoint.X = line.srcg.Location.X+line.srcg.Width;
-                        line.EndPoint.X = line.desg.Location.X ;
-                    }
-                    Point sp = new Point(line.StartPoint.X,line.StartPoint.Y);
+                   
+                        p.StartCap = System.Drawing.Drawing2D.LineCap.NoAnchor; }
                 g.DrawLine(p, line.StartPoint, line.EndPoint);
                 }
             }
@@ -721,24 +729,65 @@ namespace DrapPanel
                     int index_des = -1;
                     bool src_isShow=true;
                     bool des_isShow=true;
+                    int direct = 0;
             foreach (string  l in function.readLine())
 	        {
-        		        string[] ls = l.Split('\b');                        
-                        index_src = int.Parse(ls[1]);
-                        index_des = int.Parse(ls[3]);
+        		        string[] ls = l.Split('\b');
+                        if (ls[6] == "0")
+                        {
+                            index_src = int.Parse(ls[2]);
+                            index_des = int.Parse(ls[4]);
+                            foreach (GroupBox g in panel4.Controls.OfType<GroupBox>())
+                            {
+                                if (g.Text == ls[1])
+                                {
+                                    srcg = g;
+                                }
+                                if (g.Text == ls[3])
+                                {
+                                    desg = g;
+                                }
+                            }
+                            direct = 0;
+                        }
+                        if (ls[6] == "1")
+                        {
+                            index_src = int.Parse(ls[4]);
+                            index_des = int.Parse(ls[2]);
+                            foreach (GroupBox g in panel4.Controls.OfType<GroupBox>())
+                            {
+                                if (g.Text == ls[3])
+                                {
+                                    srcg = g;
+                                }
+                                if (g.Text == ls[1])
+                                {
+                                    desg = g;
+                                }
+                            }
+                            direct =1;
+                        }
+                        if (ls[6] == "2")
+                        {
+                            index_src = int.Parse(ls[2]);
+                            index_des = int.Parse(ls[4]);
+                            foreach (GroupBox g in panel4.Controls.OfType<GroupBox>())
+                            {
+                                if (g.Text == ls[1])
+                                {
+                                    srcg = g;
+                                }
+                                if (g.Text == ls[3])
+                                {
+                                    desg = g;
+                                }
+                            }
+                            direct = 2;
+                        }
+                        
                         
                        
-                        foreach (GroupBox g in panel4.Controls.OfType<GroupBox>())
-                        {
-                            if (g.Name == ls[0])
-                            {
-                                srcg = g;
-                            }
-                            if (g.Name == ls[2])
-                            {
-                                desg = g;
-                            }
-                        }
+                        
 
                         foreach (Control cp in srcg.Controls)
                         {
@@ -793,9 +842,11 @@ namespace DrapPanel
                         line.desg_itemIndex = index_des;
                         line.src_isShow = src_isShow;
                         line.des_isShow = des_isShow;
+                        line.direct = direct;
                         lines.Add(line);                    
             }
-            
+            this.Refresh();
+
         
         }
         private Point getPoint(string x)
@@ -819,6 +870,8 @@ namespace DrapPanel
          
             grp.Text = text;
             grp.Name = name;
+            if (name == "table1") grp.Location = new Point((int)(panel4.Width * 0.2),(int)(panel4.Height*0.2));
+            else { grp.Location = new Point((int)(panel4.Width * 0.6), (int)(panel4.Height * 0.2)); }
             if (!isLoad)
             {
                 grp.Width = 150;
@@ -923,7 +976,7 @@ namespace DrapPanel
                 {
 
                     string showText = "";
-                    showText = "[起点:" + l.srcg.Name + ".";
+                    showText = "[起点:" + l.srcg.Text + ".";
 
                     foreach (Control cp in l.srcg.Controls)
                     {
@@ -932,7 +985,7 @@ namespace DrapPanel
                             showText += lv.Items[l.srcg_itemIndex].Text + "]+--+";
                         }
                     }
-                    showText += "[终点:" + l.desg.Name + ".";
+                    showText += "[终点:" + l.desg.Text + ".";
                     foreach (Control cp in l.desg.Controls)
                     {
                         foreach (ListView lv in cp.Controls)
@@ -1119,7 +1172,7 @@ namespace DrapPanel
 
                 }
             }
-
+            if(selectedLine!=null)tagTxt.Text = selectedLine.tag;
             #endregion
 
         }
@@ -1247,9 +1300,13 @@ namespace DrapPanel
             }
 
             if (isOK()) 
-            { function.createTable(cb1.Text,cb2.Text);
-            label2.Text = "已建立联系表";
+            { 
+                function.createTable(cb1.Text,cb2.Text);
+                //读取数据，因为每画一条线就保存一次，所以不需要再有保存了在切换之前
+                loadData();
+                label2.Text = "已建立联系表";
             }
+           
         }
         
         private bool isOK()
@@ -1263,6 +1320,8 @@ namespace DrapPanel
             if (num == 2) return true;
             else return false;
         }
+
+        
       
     
 
