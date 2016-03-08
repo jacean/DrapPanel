@@ -21,6 +21,25 @@ namespace DrapPanel
         sqlConn sqlconn = new sqlConn();
         bool loadEnd = false;
         public ContextMenuStrip rM = new ContextMenuStrip();
+        public static int LV_DEFAULT_ROWHEIGHT = 25;        
+        public static int LV_TO_GRP_DEFAULT_LEFT = 10;        
+        public static int LV_TO_GRP_DEFAULT_TOP = 10;        
+        public static int GRP_DEFAULT_WIDTH = 150;        
+        public static int GRP_DEFAULT_HEIGHT = 300;
+
+        public static int LV_NOW_ROWHEIGHT = LV_DEFAULT_ROWHEIGHT;
+        //public static int LV_TO_GRP_NOW_LEFT = LV_TO_GRP_DEFAULT_LEFT;
+        //public static int LV_TO_GRP_NOW_TOP = LV_TO_GRP_DEFAULT_TOP;
+        public static int GRP_NOW_WIDTH = GRP_DEFAULT_WIDTH;
+        public static int GRP_NOW_HEIGHT = GRP_DEFAULT_HEIGHT;
+
+        public static int MIN_GRP_WIDTH = 60;
+        public static int MIN_GRP_HEIGHT = 60;
+        public static float MOUSE_WHEEL_UP = 1.02f;
+        public static float MOUSE_WHEEL_DOWN = 0.98f;
+        public enum Direct : int { isSrc = 0, isDes = 1, isBoth = 2 };
+        public enum PointStatus : int { InForm = 0, InSrc = 1, InDes = 2 };
+
 
         private void Form4_Load(object sender, EventArgs e)
         {
@@ -34,6 +53,7 @@ namespace DrapPanel
             panel4.MouseWheel += new MouseEventHandler(panel4_MouseWheel);
 
 
+
             this.DoubleBuffered = true;
             this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
            
@@ -42,6 +62,39 @@ namespace DrapPanel
             updateLines();
             
             panel4.Height=this.ClientSize.Height-panel1.Height;
+            if (File.Exists(Application.StartupPath + "\\setting.ini"))
+            {
+                using (StreamReader sr = new StreamReader(Application.StartupPath + "\\setting.ini", Encoding.UTF8))
+                {
+                    string l = "";
+                    while ((l = sr.ReadLine()) != null)
+                    {//这是连接表的位置，如果第一次没有就提示选择
+                        function.sqlcon = l;
+                    }
+
+                }
+            }
+            else
+            {
+                Input input = new Input();
+                input.ShowDialog();
+                using (StreamWriter sw = new StreamWriter(Application.StartupPath + "\\setting.ini", false, Encoding.UTF8))
+                {
+                    sw.WriteLine(function.sqlcon);
+                }
+            }
+            if (File.Exists(Application.StartupPath + "\\config.ini"))
+            {
+                using (StreamReader sr = new StreamReader("config.ini", Encoding.UTF8))
+                {
+                    string l = "";
+                    while ((l = sr.ReadLine()) != null)
+                    {//这是连接表的位置，如果第一次没有就提示选择
+                        textBox1.Text= l;
+                    }
+
+                }
+            }
 
         }   
 
@@ -191,18 +244,20 @@ namespace DrapPanel
         /// <param name="e"></param>
         void panel4_MouseMove(object sender, MouseEventArgs e)
         {
+
+            int x = e.Location.X;
+            int y = e.Location.Y;
+
+            isInline(x, y);
+
             label1.Text = "在panle4中移动"+getPointToForm().ToString();
            
             if (startPaint && location == 0)
-            {
-                
+            {                
                 if (drawingLine != null)
-                {
-                   
-                    drawingLine.EndPoint = e.Location;
-              
-                    this.Invalidate();
-                 
+                {                   
+                    drawingLine.EndPoint = e.Location;              
+                    this.Invalidate();                 
                     this.Refresh();
                 }
             }
@@ -210,8 +265,6 @@ namespace DrapPanel
 
             if (isMoveForm)
             {
-
-               
                 //移动容器,依靠的是系统对groupbox的遍历是一致的顺序
                 int i = 0;
                 foreach (GroupBox grp in panel4.Controls.OfType<GroupBox>())
@@ -220,9 +273,7 @@ namespace DrapPanel
                     grp.Left = pointList[i].X-movestartPoint.X+e.X;
                     grp.Top = pointList[i++].Y-movestartPoint.Y+e.Y;
                 }
-
-                updateLines();
-                
+                updateLines();                
             }
 
           
@@ -240,37 +291,47 @@ namespace DrapPanel
 
                 if (e.Delta > 0)
                 {
-                    Mo = 1.02f;
+                    Mo = MOUSE_WHEEL_UP;
 
 
                 }
                 else if (e.Delta < 0)
                 {
-                    Mo = 0.98f;
+                    Mo = MOUSE_WHEEL_DOWN;
                 }
                 #region 移动控件
                 foreach (Control ct in this.panel4.Controls.OfType<GroupBox>())
                 {//看成是点的移动
 
-                    if (ct.Width < 60 | ct.Height< 60)
+                    if (ct.Width < MIN_GRP_WIDTH | ct.Height< MIN_GRP_HEIGHT)
                     {
                         if (Mo < 1)
                             return;
                     }
 
-                    ct.Width += (int)((Mo - 1) * (float)ct.Width);
-                    ct.Height += (int)((Mo - 1) * (float)ct.Height);
-                    ct.Left += (int)((float)(ct.Left - e.X) * (Mo - 1));
+                    ct.Width += (int)((Mo - 1) * (float)ct.Width);                    
+                    ct.Height += (int)((Mo - 1) * (float)ct.Height);                    
+                    ct.Left += (int)((float)(ct.Left - e.X) * (Mo - 1));                    
                     ct.Top += (int)((float)(ct.Top - e.Y) * (Mo - 1));
 
+                    GRP_NOW_WIDTH = ct.Width;
+                    GRP_NOW_HEIGHT = ct.Height;
+                    
                     /////////
                     foreach (Control cp in ct.Controls)
                     {
                         foreach (Control cl in cp.Controls)
                         {
-                            cl.Width = cp.Width - 10;
-                            cl.Height = cp.Height - 10;
-                            cl.Location = new Point(5, 5);
+                            cl.Width = cp.Width - 2*LV_TO_GRP_DEFAULT_LEFT;
+                            cl.Height = cp.Height - 2*LV_TO_GRP_DEFAULT_TOP;
+                            cl.Location = new Point(LV_TO_GRP_DEFAULT_LEFT, LV_TO_GRP_DEFAULT_TOP);
+
+                            LV_NOW_ROWHEIGHT += (int)((float)LV_NOW_ROWHEIGHT * (Mo - 1));
+                            ImageList imgList = new ImageList();
+                            imgList.ImageSize = new Size(1,LV_NOW_ROWHEIGHT);
+                           (cl as ListView).SmallImageList = imgList;
+                           (cl as ListView).Columns[0].Width = cl.Width / 2;
+                           (cl as ListView).Columns[1].Width = cl.Width / 2;                           
                         }
 
                     }
@@ -326,7 +387,7 @@ namespace DrapPanel
                             line.EndPoint.X = line.desg.Location.X;
                         }
                     }
-                    if (line.direct == 2)
+                    if (line.direct == (int)Direct.isBoth)
                     {
                         p.CustomStartCap = lineCap;
                     }
@@ -373,6 +434,7 @@ namespace DrapPanel
         bool startPaint = false;
         int location = 0;//0在form，1在src，2在des
         int count = 0;//只有count=1，才启动画新线
+       
         void panel_MouseClick(object sender, MouseEventArgs e)
         {
 
@@ -396,7 +458,6 @@ namespace DrapPanel
                         itemPoint = getItemLocation(lv, i);
                         height = lv.GetItemRect(i).Height;
 
-
                         if ((gg.PointToClient(Control.MousePosition)).Y > itemPoint.Y && (gg.PointToClient(Control.MousePosition)).Y < itemPoint.Y+height)
                         {
                             selectedIndex = i;
@@ -415,7 +476,7 @@ namespace DrapPanel
                     {//起始panel
                         mDown = true;
                         src = sender;
-                        location = 1;
+                        location = (int)PointStatus.InSrc;
                         startPaint = true;
 
                         label3.Text=(new Point(gg.Location.X + dsX, itemPoint.Y + height / 2 + gg.Location.Y)).ToString();
@@ -428,7 +489,7 @@ namespace DrapPanel
                     }
                     else
                     {//结束panel
-                        if (location == 2 && startPaint)
+                        if (location == (int)PointStatus.InDes && startPaint)
                         {
                             label12.Text = "结束点对应选中项为：" + selectedIndex.ToString();
                             //将end坐标设为鼠标纵坐标所属项的中间位置
@@ -454,7 +515,7 @@ namespace DrapPanel
 
                         mDown = false;
                         startPaint = false;
-                        location = 0;
+                        location = (int)PointStatus.InForm;
           
                         src = null;
                         des = null;
@@ -488,34 +549,34 @@ namespace DrapPanel
             {
                 
              
-                location = 2;
+                location = (int)PointStatus.InDes;
                 drawingLine.EndPoint = this.PointToClient(Control.MousePosition);
             }
             if (startPaint && src == des)
             {
             
               
-                location = 1;
+                location = (int)PointStatus.InSrc;
             }
         }
 
         private void panel_MouseLeave(object sender, EventArgs e)
         {
-            if (mDown&&location==1)
+            if (mDown && location == (int)PointStatus.InSrc)
             {
-                location = 0;
+                location = (int)PointStatus.InForm;
               
             }
-            if (startPaint && location == 2)
+            if (startPaint && location == (int)PointStatus.InDes)
             {
                 drawingLine.EndPoint = this.PointToClient(Control.MousePosition);
-                location = 0;
+                location = (int)PointStatus.InForm;
 
             }
             if (startPaint && count > 1)
             {
                 drawingLine.EndPoint = this.PointToClient(Control.MousePosition);
-                location = 0;
+                location = (int)PointStatus.InForm;
             }
         }
         
@@ -713,6 +774,11 @@ namespace DrapPanel
 
             //    }
             //}
+
+            using (StreamWriter sw = new StreamWriter("config.ini", false, Encoding.UTF8))
+            {
+                sw.WriteLine(textBox1.Text.Trim());
+            }
         }
 
         private void loadData()
@@ -748,7 +814,7 @@ namespace DrapPanel
                                     desg = g;
                                 }
                             }
-                            direct = 0;
+                            direct =(int)Direct.isSrc;
                         }
                         if (ls[6] == "1")
                         {
@@ -765,7 +831,7 @@ namespace DrapPanel
                                     desg = g;
                                 }
                             }
-                            direct =1;
+                            direct =(int)Direct.isDes;
                         }
                         if (ls[6] == "2")
                         {
@@ -782,7 +848,7 @@ namespace DrapPanel
                                     desg = g;
                                 }
                             }
-                            direct = 2;
+                            direct = (int)Direct.isBoth;
                         }
                         
                         
@@ -870,12 +936,13 @@ namespace DrapPanel
          
             grp.Text = text;
             grp.Name = name;
+            //确定选择项新出现的位置
             if (name == "table1") grp.Location = new Point((int)(panel4.Width * 0.2),(int)(panel4.Height*0.2));
             else { grp.Location = new Point((int)(panel4.Width * 0.6), (int)(panel4.Height * 0.2)); }
             if (!isLoad)
             {
-                grp.Width = 150;
-                grp.Height = 300;
+                grp.Width = GRP_NOW_WIDTH;
+                grp.Height = GRP_NOW_HEIGHT;
             }
             grp.Margin = new Padding(0);
             grp.Padding = new Padding(0);
@@ -895,32 +962,12 @@ namespace DrapPanel
             lv.GridLines = true;
             lv.Scrollable = true;
             lv.MultiSelect = false;
-            lv.HoverSelection = false;
+            lv.HoverSelection = true;
             lv.Scroll += new ScrollEventHandler(lv_Scroll);
-            
-
-            #region add data
-            lv.Columns.Add("字段名");
-            lv.Columns.Add("字段类型");
-            //lv.Columns.Add("列标题3", 100, HorizontalAlignment.Left);
-            //add list
-            lv.BeginUpdate();
-            //数据更新，UI暂时挂起，直到EndUpdate绘制控件，可以有效避免闪烁并大大提高加载速度
-            for (int i = 0; i < tblFields.Rows.Count; i++)
-            {
-                if (tblFields.Rows[i]["Table_Name"].ToString() ==text)
-                {
-                    ListViewItem lvi = new ListViewItem();
-                    // lvi.ImageIndex = i;     //通过与imageList绑定，显示imageList中第i项图标
-
-                    lvi.Text = tblFields.Rows[i]["Column_Name"].ToString();
-                    lvi.SubItems.Add(tblFields.Rows[i]["DATA_TYPE"].ToString());
-                    lv.Items.Add(lvi);
-
-                }
-            }
-            lv.EndUpdate();  //结束数据处理，UI界面一次性绘制。
-            #endregion
+            ImageList imgList = new ImageList();
+            imgList.ImageSize = new Size(1, LV_NOW_ROWHEIGHT);
+            lv.SmallImageList = imgList;
+            //lv.CheckBoxes = true;            
             panel4.Controls.Add(grp);
             grp.Controls.Add(panel);
             panel.Dock = DockStyle.Fill;
@@ -929,10 +976,35 @@ namespace DrapPanel
             panel.Padding = new Padding(0);
             panel.Controls.Add(lv);
             lv.Margin = new Padding(0);
-            lv.Width = panel.Width - 10;
-            lv.Height = panel.Height - 10;
-            lv.Location = new Point(5, 5);
+            lv.Width = panel.Width - 2*LV_TO_GRP_DEFAULT_LEFT;
+            lv.Height = panel.Height - 2*LV_TO_GRP_DEFAULT_TOP;
+            lv.Location = new Point(LV_TO_GRP_DEFAULT_LEFT, LV_TO_GRP_DEFAULT_TOP);
             grp.BringToFront();
+
+            #region add data
+            lv.Columns.Add("字段名",lv.Width/2);//自适应列宽
+            lv.Columns.Add("字段类型",lv.Width/2);
+            lv.AutoResizeColumns(ColumnHeaderAutoResizeStyle.HeaderSize);
+            //lv.Columns.Add("列标题3", 100, HorizontalAlignment.Left);
+            //add list
+            lv.BeginUpdate();
+            //数据更新，UI暂时挂起，直到EndUpdate绘制控件，可以有效避免闪烁并大大提高加载速度
+            for (int i = 0; i < tblFields.Rows.Count; i++)
+            {
+                if (tblFields.Rows[i]["Table_Name"].ToString() == text)
+                {
+                    ListViewItem lvi = new ListViewItem();
+                    // lvi.ImageIndex = i;     //通过与imageList绑定，显示imageList中第i项图标
+                    if (i % 2 == 0) lvi.BackColor = Color.PapayaWhip;
+                    else lvi.BackColor = Color.Wheat;
+                    lvi.Text = tblFields.Rows[i]["Column_Name"].ToString();
+                    lvi.SubItems.Add(tblFields.Rows[i]["DATA_TYPE"].ToString());
+                    lv.Items.Add(lvi);
+
+                }
+            }
+            lv.EndUpdate();  //结束数据处理，UI界面一次性绘制。
+            #endregion
         }
 
         void lv_Scroll(object sender, ScrollEventArgs e)
@@ -1042,8 +1114,8 @@ namespace DrapPanel
 
                         itemstartPoint = getItemLocation(lv, line.srcg_itemIndex);
                         startHeight = lv.GetItemRect(line.srcg_itemIndex).Height;
-                        if (itemstartPoint.Y < 5 + 14 + 16 || itemstartPoint.Y > srcg.Height - 5)
-                        {
+                        if (itemstartPoint.Y < LV_TO_GRP_DEFAULT_TOP + 14 + 16 || itemstartPoint.Y > srcg.Height - LV_TO_GRP_DEFAULT_TOP)
+                        {//除去groupbox的空白部分的距离
                             line.src_isShow = false;
                         }
                         else
@@ -1064,7 +1136,7 @@ namespace DrapPanel
 
                         itemendPoint = getItemLocation(lv, line.desg_itemIndex);
                         endHeight = lv.GetItemRect(line.desg_itemIndex).Height;
-                        if (itemendPoint.Y < 5 + 14 + 16 || itemendPoint.Y > desg.Height - 5)
+                        if (itemendPoint.Y < LV_TO_GRP_DEFAULT_TOP + 14 + 16 || itemendPoint.Y > desg.Height - LV_TO_GRP_DEFAULT_TOP)
                         {
                             line.des_isShow = false;
                         }
@@ -1172,7 +1244,16 @@ namespace DrapPanel
 
                 }
             }
-            if(selectedLine!=null)tagTxt.Text = selectedLine.tag;
+            if (inLine)
+            {
+                this.Cursor = Cursors.Hand; 
+                this.Refresh();
+                this.Invalidate();
+            }
+            else this.Cursor = Cursors.Default;
+            if(selectedLine!=null){
+                tagTxt.Text = selectedLine.tag;                
+            }
             #endregion
 
         }
@@ -1223,23 +1304,26 @@ namespace DrapPanel
                 return;
             }
             DataTable dt = sqlconn.getVector("SELECT Name,crdate FROM SysObjects Where XType='U' ORDER BY Name");
-            dataGridView1.DataSource = dt.DefaultView;
-            cb1.DataSource = dt;
-            cb2.DataSource = dt.Copy();
-            cb1.DisplayMember = "name";
-            cb2.DisplayMember = "name";
-            cb1.ValueMember = "name";
-            cb2.ValueMember = "name";            
-            cb1.AutoCompleteSource = AutoCompleteSource.ListItems;
-            cb1.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-            cb2.AutoCompleteSource = AutoCompleteSource.ListItems;
-            cb2.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-            loadEnd = true;
-            cb1.SelectedIndex = -1;            
-            cb2.SelectedIndex = -1;
-            cb1.SelectedIndex = 0;
-           
-        }       
+
+            if (dt != null)
+            {
+                dataGridView1.DataSource = dt.DefaultView;
+                cb1.DataSource = dt;
+                cb2.DataSource = dt.Copy();
+                cb1.DisplayMember = "name";
+                cb2.DisplayMember = "name";
+                cb1.ValueMember = "name";
+                cb2.ValueMember = "name";
+                cb1.AutoCompleteSource = AutoCompleteSource.ListItems;
+                cb1.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                cb2.AutoCompleteSource = AutoCompleteSource.ListItems;
+                cb2.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                loadEnd = true;
+                cb1.SelectedIndex = -1;
+                cb2.SelectedIndex = -1;
+                cb1.SelectedIndex = 0;
+            }
+        }
 
         private void cb_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -1290,7 +1374,7 @@ namespace DrapPanel
                 if (!isExist)
                 {
                     GroupBox grp = new GroupBox();
-                    addNewGroupBox(grp,tablename, cb.Text, false);
+                    addNewGroupBox(grp, tablename, cb.Text, false);
                 }
 
             }
@@ -1299,14 +1383,14 @@ namespace DrapPanel
                 MessageBox.Show("数据库尚未连接。。。");
             }
 
-            if (isOK()) 
-            { 
-                function.createTable(cb1.Text,cb2.Text);
+            if (isOK())
+            {
+                function.createTable(cb1.Text, cb2.Text);
                 //读取数据，因为每画一条线就保存一次，所以不需要再有保存了在切换之前
                 loadData();
                 label2.Text = "已建立联系表";
             }
-           
+
         }
         
         private bool isOK()

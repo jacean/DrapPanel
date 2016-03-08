@@ -22,3 +22,5 @@ F:\ASJ\Part-time\DrapPanel\DrapPanel\obj\Release\DrapPanel.tableElement.resource
 F:\ASJ\Part-time\DrapPanel\DrapPanel\obj\Release\DrapPanel.csproj.GenerateResource.Cache
 E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.MainForm.resources
 E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.temp.resources
+E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.Input.resources
+E:\program\DrapPanel\DrapPanel\obj\Release\DrapPanel.MDIForm.resources

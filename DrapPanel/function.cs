@@ -16,7 +16,9 @@ namespace DrapPanel
         static string index1;
         static string index2;
         static string direct;
-        static string sqlcon="Data Source=ELAB-36\\SQLEXPRESS;Initial Catalog=asj_DBR;Integrated Security=True;Pooling=False";
+        //static string sqlcon="Data Source=ELAB-36\\SQLEXPRESS;Initial Catalog=asj_DBR;Integrated Security=True;Pooling=False";
+        public static string sqlcon = "";
+
         public static void createTable(string table1, string table2)
         {
             sqlConn con = new sqlConn();
@@ -130,16 +132,19 @@ namespace DrapPanel
             DataTable dt=con.getVector(sql);
             List<string> lineList = new List<string>();
             string line = "";
-            for (int i = 0; i < dt.Rows.Count; i++)
+            if (dt!=null)
             {
-                line = "";
-                for (int j = 0; j < dt.Columns.Count; j++)
+                for (int i = 0; i < dt.Rows.Count; i++)
                 {
-                    line += dt.Rows[i][j].ToString()+"\b";
-                }
-                if (lineList.Contains(line)) continue;
-                lineList.Add(line);
+                    line = "";
+                    for (int j = 0; j < dt.Columns.Count; j++)
+                    {
+                        line += dt.Rows[i][j].ToString() + "\b";
+                    }
+                    if (lineList.Contains(line)) continue;
+                    lineList.Add(line);
 
+                }
             }
             return lineList;
         }
