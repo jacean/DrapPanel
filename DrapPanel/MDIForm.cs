@@ -130,7 +130,9 @@ namespace DrapPanel
                 bool isClose = x > myTabRect.X && x < myTabRect.Right && y > myTabRect.Y && y < myTabRect.Bottom;
                 if (isClose == true)
                 {
+                    (this.MainTabControl.SelectedTab.Controls[0] as MainForm).Close();
                     this.MainTabControl.TabPages.Remove(this.MainTabControl.SelectedTab);
+
                 }
             }
 

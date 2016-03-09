@@ -83,18 +83,18 @@ namespace DrapPanel
                     sw.WriteLine(function.sqlcon);
                 }
             }
-            if (File.Exists(Application.StartupPath + "\\config.ini"))
-            {
-                using (StreamReader sr = new StreamReader("config.ini", Encoding.UTF8))
-                {
-                    string l = "";
-                    while ((l = sr.ReadLine()) != null)
-                    {//这是连接表的位置，如果第一次没有就提示选择
-                        textBox1.Text= l;
-                    }
+            //if (File.Exists(Application.StartupPath + "\\config.ini"))
+            //{
+            //    using (StreamReader sr = new StreamReader("config.ini", Encoding.UTF8))
+            //    {
+            //        string l = "";
+            //        while ((l = sr.ReadLine()) != null)
+            //        {//这是连接表的位置，如果第一次没有就提示选择
+            //            textBox1.Text= l;
+            //        }
 
-                }
-            }
+            //    }
+            //}
 
         }   
 
