@@ -52,8 +52,8 @@ namespace DrapPanel
 
         private void Form4_Load(object sender, EventArgs e)
         {
-            this.Text += "  waiting...";
-            this.Parent.Text = this.Text;
+            //this.Text = "  waiting...";
+            //this.Parent.Text = this.Text;
             label1.Text = "";
             label11.Text = "";
             label12.Text = "";
@@ -62,17 +62,13 @@ namespace DrapPanel
             panel4.MouseDown += new MouseEventHandler(panel4_MouseDown);
             panel4.MouseUp += new MouseEventHandler(panel4_MouseUp);
             panel4.MouseWheel += new MouseEventHandler(panel4_MouseWheel);
-
+            //panel4.Dock = DockStyle.Fill;
 
 
             this.DoubleBuffered = true;
             this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
-           
-            
-           
-            
-            panel4.Height=this.ClientSize.Height-panel1.Height;
 
+           
             if (sqltxt != "")
             {
               
@@ -80,20 +76,39 @@ namespace DrapPanel
 
                 for (int i = 0; i < cb1.Items.Count; i++)
                 {
-                    if (cb1.Items[i].ToString() == tableName.Split(new[] { "__" }, StringSplitOptions.None)[0]) cb1.SelectedIndex = i;
+                    string[] x= tableName.Substring(3).Split(new[] { "__" }, StringSplitOptions.None);
+                    if (cb1.GetItemText(cb1.Items[i])== tableName.Substring(3).Split(new[] { "__" }, StringSplitOptions.None)[0]) cb1.SelectedIndex = i;
                 }
                 for (int i = 0; i < cb2.Items.Count; i++)
-                {
-                    if (cb2.Items[i].ToString() == tableName.Split(new[] { "__" }, StringSplitOptions.None)[1]) cb2.SelectedIndex = i;
+                {                  
+                    if (cb2.GetItemText(cb2.Items[i]) == tableName.Split(new[] { "__" }, StringSplitOptions.None)[1]) cb2.SelectedIndex = i;
                 }
-                //cb1.SelectedText = tableName.Split(new[] { "__" }, StringSplitOptions.None)[0];
-                //cb2.SelectedText = tableName.Split(new[] { "__" }, StringSplitOptions.None)[1];
-                //foreach (GroupBox gr in panel4.Controls.OfType<GroupBox>())
-                //{
-                //    if (gr.Name == "table1") cb1.SelectedText = gr.Text;
-                //    if (gr.Name == "table2") cb2.Text = gr.Text;
-                //}
-
+              
+            }
+            else{
+                if (File.Exists(Application.StartupPath + "//history.txt"))
+                {
+                    DataTable dt = new DataTable();
+                    using (StreamReader sr = new StreamReader(Application.StartupPath + "//history.txt", Encoding.UTF8))
+                    {
+                        dt.Columns.Add("showValue");
+                        dt.Columns.Add("trueValue");
+                        string l = "";
+                        while ((l = sr.ReadLine()) != null)
+                        {
+                            DataRow dr = dt.NewRow();
+                            dr["showValue"] = l.Split('\b')[0];
+                            dr["trueValue"] = l.Split('\b')[1];
+                            dt.Rows.Add(dr);
+                        }
+                    }
+                    historyCb.DataSource = dt;
+                    historyCb.DisplayMember = "showValue";              
+                    historyCb.ValueMember = "trueValue";
+                    historyCb.AutoCompleteSource = AutoCompleteSource.ListItems;
+                    historyCb.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+                    //historyCb.SelectedIndex = historyCb.Items.Count - 1;
+                }
             }
             updateListBox();
             updateLines();
@@ -1285,9 +1300,63 @@ namespace DrapPanel
 
                 return;
             }
-            
-            DataTable dt = sqlconn.getVector("SELECT Name,crdate FROM SysObjects Where XType='U' ORDER BY Name");
 
+            DataTable dt = new DataTable();
+         #region update history
+            string dbName = sqlconn.GetSingleResult("select db_name();");
+            if (File.Exists(Application.StartupPath + "//history.txt"))
+            {               
+                using (StreamReader sr = new StreamReader(Application.StartupPath + "//history.txt", Encoding.UTF8))
+                {
+                    dt.Columns.Add("showValue");
+                    dt.Columns.Add("trueValue");
+                    string l = "";
+                    while ((l = sr.ReadLine()) != null)
+                    {
+                        DataRow dr = dt.NewRow();
+                        dr["showValue"] = l.Split('\b')[0];
+                        dr["trueValue"] = l.Split('\b')[1];
+                        dt.Rows.Add(dr);
+                    }
+                }
+                var results = from row in dt.AsEnumerable()
+                              where row.Field<string>("showValue") == dbName
+                              select row;
+                if (results.Count() > 0)
+                {
+                    foreach (DataRow r in results)
+                    {
+                        r["trueValue"] = textBox1.Text;
+                    }
+                    using (StreamWriter sw = new StreamWriter(Application.StartupPath + "//history.txt", false, Encoding.UTF8))
+                    {
+                        foreach (DataRow r in dt.Rows)
+                        {
+                            sw.WriteLine(r["showValue"] + "\b" + r["trueValue"]);
+                        }
+
+                    }
+                }
+                else
+                {
+                    using (StreamWriter sw = new StreamWriter(Application.StartupPath + "//history.txt", true, Encoding.UTF8))
+                    {
+                        sw.WriteLine(dbName + "\b" + textBox1.Text);
+                    }
+                }
+            }
+            else
+            {
+                using (StreamWriter sw = new StreamWriter(Application.StartupPath + "//history.txt", true, Encoding.UTF8))
+                {
+                    sw.WriteLine(dbName + "\b" + textBox1.Text);
+                }
+            }
+         #endregion
+            
+           
+
+            dt = sqlconn.getVector("SELECT Name,crdate FROM SysObjects Where XType='U' ORDER BY Name");
             if (dt != null)
             {
                 dataGridView1.DataSource = dt.DefaultView;
@@ -1396,6 +1465,11 @@ namespace DrapPanel
             if (num == 2) {                
                 return true; }
             else return false;
+        }
+
+        private void historyCb_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            textBox1.Text = historyCb.SelectedValue.ToString();
         }
 
         

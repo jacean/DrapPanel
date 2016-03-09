@@ -64,7 +64,7 @@ namespace DrapPanel
                             mf.Show();
 
                             MainTabControl.TabPages[MainTabControl.TabPages.Count - 1].Controls.Add(mf);
-                            this.MainTabControl.SelectedTab.Text = mf.Text;
+                            MainTabControl.TabPages[MainTabControl.TabPages.Count - 1].Text = mf.Text;
 
                             TabPage newTab = new TabPage();
                             newTab.Text = "  New ";
@@ -82,6 +82,7 @@ namespace DrapPanel
                 {
                     sw.WriteLine(function.sqlconDBR);
                 }
+                hasSetting = true;
             }
             if (!hasSetting)
             {

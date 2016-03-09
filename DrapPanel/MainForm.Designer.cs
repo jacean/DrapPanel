@@ -47,6 +47,7 @@
             this.cb1 = new System.Windows.Forms.ComboBox();
             this.cb2 = new System.Windows.Forms.ComboBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.historyCb = new System.Windows.Forms.ComboBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -153,6 +154,7 @@
             // panel2
             // 
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.panel2.Controls.Add(this.historyCb);
             this.panel2.Controls.Add(this.pictureBox1);
             this.panel2.Controls.Add(this.button5);
             this.panel2.Controls.Add(this.label2);
@@ -216,7 +218,7 @@
             this.textBox1.Location = new System.Drawing.Point(5, 151);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(162, 119);
+            this.textBox1.Size = new System.Drawing.Size(162, 87);
             this.textBox1.TabIndex = 9;
             // 
             // cb1
@@ -253,6 +255,15 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 29.35154F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(898, 586);
             this.tableLayoutPanel1.TabIndex = 0;
+            // 
+            // historyCb
+            // 
+            this.historyCb.FormattingEnabled = true;
+            this.historyCb.Location = new System.Drawing.Point(5, 244);
+            this.historyCb.Name = "historyCb";
+            this.historyCb.Size = new System.Drawing.Size(162, 20);
+            this.historyCb.TabIndex = 13;
+            this.historyCb.SelectedIndexChanged += new System.EventHandler(this.historyCb_SelectedIndexChanged);
             // 
             // MainForm
             // 
@@ -296,5 +307,6 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox tagTxt;
         private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.ComboBox historyCb;
     }
 }
