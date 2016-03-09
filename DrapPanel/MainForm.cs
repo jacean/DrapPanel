@@ -16,8 +16,17 @@ namespace DrapPanel
         {
             InitializeComponent();
         }
-      
-        string sqltxt = "";
+        public MainForm(string name,string sqltxt)
+        {
+            InitializeComponent();
+            this.sqltxt = sqltxt;
+            textBox1.Text = sqltxt;
+            this.Text = name;
+            tableName = name;
+           
+        }
+        public string sqltxt = "";
+        public string tableName = "";
         sqlConn sqlconn = new sqlConn();
         bool loadEnd = false;
         public ContextMenuStrip rM = new ContextMenuStrip();
@@ -43,6 +52,8 @@ namespace DrapPanel
 
         private void Form4_Load(object sender, EventArgs e)
         {
+            this.Text += "  waiting...";
+            this.Parent.Text = this.Text;
             label1.Text = "";
             label11.Text = "";
             label12.Text = "";
@@ -58,44 +69,34 @@ namespace DrapPanel
             this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
            
             
-            updateListBox();
-            updateLines();
+           
             
             panel4.Height=this.ClientSize.Height-panel1.Height;
-            if (File.Exists(Application.StartupPath + "\\setting.ini"))
+
+            if (sqltxt != "")
             {
-                using (StreamReader sr = new StreamReader(Application.StartupPath + "\\setting.ini", Encoding.UTF8))
+              
+                button5_Click(null, null);
+
+                for (int i = 0; i < cb1.Items.Count; i++)
                 {
-                    string l = "";
-                    while ((l = sr.ReadLine()) != null)
-                    {//这是连接表的位置，如果第一次没有就提示选择
-                        function.sqlcon = l;
-                    }
-
+                    if (cb1.Items[i].ToString() == tableName.Split(new[] { "__" }, StringSplitOptions.None)[0]) cb1.SelectedIndex = i;
                 }
-            }
-            else
-            {
-                Input input = new Input();
-                input.ShowDialog();
-                using (StreamWriter sw = new StreamWriter(Application.StartupPath + "\\setting.ini", false, Encoding.UTF8))
+                for (int i = 0; i < cb2.Items.Count; i++)
                 {
-                    sw.WriteLine(function.sqlcon);
+                    if (cb2.Items[i].ToString() == tableName.Split(new[] { "__" }, StringSplitOptions.None)[1]) cb2.SelectedIndex = i;
                 }
+                //cb1.SelectedText = tableName.Split(new[] { "__" }, StringSplitOptions.None)[0];
+                //cb2.SelectedText = tableName.Split(new[] { "__" }, StringSplitOptions.None)[1];
+                //foreach (GroupBox gr in panel4.Controls.OfType<GroupBox>())
+                //{
+                //    if (gr.Name == "table1") cb1.SelectedText = gr.Text;
+                //    if (gr.Name == "table2") cb2.Text = gr.Text;
+                //}
+
             }
-            //if (File.Exists(Application.StartupPath + "\\config.ini"))
-            //{
-            //    using (StreamReader sr = new StreamReader("config.ini", Encoding.UTF8))
-            //    {
-            //        string l = "";
-            //        while ((l = sr.ReadLine()) != null)
-            //        {//这是连接表的位置，如果第一次没有就提示选择
-            //            textBox1.Text= l;
-            //        }
-
-            //    }
-            //}
-
+            updateListBox();
+            updateLines();
         }   
 
    
@@ -124,7 +125,7 @@ namespace DrapPanel
                     {
                         lines.Remove(selectedLine);
                         //在数据库里删除线
-                        function.deleteLine(selectedLine);
+                        function.deleteLine(selectedLine,tableName);
                         this.Invalidate();
                         this.Refresh();
                     }
@@ -210,7 +211,7 @@ namespace DrapPanel
         {
             if (selectedLine == null) return;
             selectedLine.tag = tagTxt.Text;
-            function.updateTag(selectedLine);
+            function.updateTag(selectedLine,tableName);
         }
         
 
@@ -635,7 +636,7 @@ namespace DrapPanel
             {
                 drawingLine.EndPoint = e;
                 //把新线存入数据库
-                function.saveLine(drawingLine);
+                function.saveLine(drawingLine,tableName);
                 drawingLine = null;
                
             }
@@ -756,29 +757,7 @@ namespace DrapPanel
 
         private void Form4_FormClosed(object sender, FormClosedEventArgs e)
         {//保存数据
-            //既然只有两个表，那么位置和大小就都默认吧，不用记了
-            //using (StreamWriter sw = new StreamWriter(@"Line.lst", false, Encoding.UTF8))
-            //{
-            //    foreach (Line l in lines)
-            //    {
-            //        sw.WriteLine(l.dsX_src.ToString()+"\b"+l.dsX_des.ToString()+"\b"+l.srcg_itemIndex.ToString()+"\b"+l.desg_itemIndex.ToString()+"\b"+l.srcg.Name.ToString()+"\b"+l.desg.Name.ToString());
-            //    }
-            //}
-            //using (StreamWriter sw = new StreamWriter(@"Control.lst", false, Encoding.UTF8))
-            //{
-            //    sw.WriteLine("sql:"+textBox1.Text);
-            //    foreach (GroupBox grp in panel4.Controls.OfType<GroupBox>())
-            //    {
-            //        //sw.WriteLine(grp.Name+"\b"+grp.Location+"\b"+grp.Width.ToString()+"\b"+grp.Height.ToString());
-            //        sw.WriteLine(grp.Text + "\b" + grp.Location + "\b" + grp.Width.ToString() + "\b" + grp.Height.ToString());
-
-            //    }
-            //}
-
-            using (StreamWriter sw = new StreamWriter("config.ini", false, Encoding.UTF8))
-            {
-                sw.WriteLine(textBox1.Text.Trim());
-            }
+        
         }
 
         private void loadData()
@@ -796,7 +775,7 @@ namespace DrapPanel
                     bool src_isShow=true;
                     bool des_isShow=true;
                     int direct = 0;
-            foreach (string  l in function.readLine())
+            foreach (string  l in function.readLine(tableName))
 	        {
         		        string[] ls = l.Split('\b');
                         if (ls[6] == "0")
@@ -850,55 +829,58 @@ namespace DrapPanel
                             }
                             direct = (int)Direct.isBoth;
                         }
-                        
-                        
-                       
-                        
 
-                        foreach (Control cp in srcg.Controls)
+
+
+
+                        if (srcg != null)
                         {
-                            foreach (ListView lv in cp.Controls)
+                            foreach (Control cp in srcg.Controls)
                             {
+                                foreach (ListView lv in cp.Controls)
+                                {
 
-                                itemstartPoint = getItemLocation(lv, index_src);
-                                startHeight = lv.GetItemRect(index_src).Height;
-                                if (itemstartPoint.Y < 5+14+16 || itemstartPoint.Y > srcg.Height - 5)
-                                {
-                                    src_isShow = false;
+                                    itemstartPoint = getItemLocation(lv, index_src);
+                                    startHeight = lv.GetItemRect(index_src).Height;
+                                    if (itemstartPoint.Y < 5 + 14 + 16 || itemstartPoint.Y > srcg.Height - 5)
+                                    {
+                                        src_isShow = false;
+                                    }
+                                    else
+                                    {
+                                        src_isShow = true;
+                                    }
+                                    startPoint.Y = srcg.Location.Y + itemstartPoint.Y + startHeight / 2;
+
                                 }
-                                else
-                                {
-                                    src_isShow = true;
-                                }
-                                startPoint.Y = srcg.Location.Y+ itemstartPoint.Y + startHeight / 2;
 
                             }
-
                         }
 
-              
-                        foreach (Control cp in desg.Controls)
+                        if (desg != null)
                         {
-                            foreach (ListView lv in cp.Controls)
+                            foreach (Control cp in desg.Controls)
                             {
-
-                                itemendPoint = getItemLocation(lv, index_des);
-                                endHeight = lv.GetItemRect(index_des).Height;
-                                if (itemendPoint.Y <  5+14+16 || itemendPoint.Y > desg.Height - 5)
+                                foreach (ListView lv in cp.Controls)
                                 {
-                                   des_isShow = false;
-                                }
-                                else
-                                {
-                                    des_isShow = true;
-                                }
 
-                                endPoint.Y =desg.Location.Y+ itemendPoint.Y + endHeight / 2;
+                                    itemendPoint = getItemLocation(lv, index_des);
+                                    endHeight = lv.GetItemRect(index_des).Height;
+                                    if (itemendPoint.Y < 5 + 14 + 16 || itemendPoint.Y > desg.Height - 5)
+                                    {
+                                        des_isShow = false;
+                                    }
+                                    else
+                                    {
+                                        des_isShow = true;
+                                    }
+
+                                    endPoint.Y = desg.Location.Y + itemendPoint.Y + endHeight / 2;
+
+                                }
 
                             }
-
                         }
-                 
                      
                         Line line = new Line(startPoint);
                         line.EndPoint = endPoint;
@@ -1303,6 +1285,7 @@ namespace DrapPanel
 
                 return;
             }
+            
             DataTable dt = sqlconn.getVector("SELECT Name,crdate FROM SysObjects Where XType='U' ORDER BY Name");
 
             if (dt != null)
@@ -1321,7 +1304,7 @@ namespace DrapPanel
                 loadEnd = true;
                 cb1.SelectedIndex = -1;
                 cb2.SelectedIndex = -1;
-                cb1.SelectedIndex = 0;
+                if(dt.Rows.Count>0)cb1.SelectedIndex = 0;
             }
         }
 
@@ -1339,10 +1322,10 @@ namespace DrapPanel
                 foreach (GroupBox g in panel4.Controls.OfType<GroupBox>())
                 {
                     if (g.Name == tablename)
-                    {
+                    {//调整table1或table2，如果cb1调整table1，则继续
                         isExist = true;
                         if (g.Text != cb.Text)
-                        {
+                        {//表不同的话就删除旧的加新的，相同则啥都不做
                             string name = cb.Text;
                             List<Line> templines = new List<Line>();
                             foreach (Line l in lines)
@@ -1363,7 +1346,7 @@ namespace DrapPanel
                         }
                     }
                     else
-                    {
+                    {//发现不是cb1对应的table1，直接看table2是不是和要加的一样，如果一样则不加了
                         if (g.Text == cb.Text)
                         {
                             MessageBox.Show("该表已存在，请不要重复添加！");
@@ -1385,23 +1368,33 @@ namespace DrapPanel
 
             if (isOK())
             {
-                function.createTable(cb1.Text, cb2.Text);
+                string[] t = new string[] { cb1.Text, cb2.Text };
+                Array.Sort(t);
+                tableName= function.createName(cb1.Text, cb2.Text);
+                this.Text = tableName;
+                function.createTable(tableName);
                 //读取数据，因为每画一条线就保存一次，所以不需要再有保存了在切换之前
                 loadData();
                 label2.Text = "已建立联系表";
             }
+            else
+            {
+                this.Text = cb.Text+"__等待连接";
+            }
+            if(this.Parent!=null)this.Parent.Text = this.Text;
 
         }
         
         private bool isOK()
         {
-            int num=0;
+            int num=0;            
             foreach (GroupBox g in panel4.Controls.OfType<GroupBox>())
             {
-                if(g.Name=="table1") num++;
-                if (g.Name == "table2") num++;                
+                if(g.Name=="table1"){ num++;}
+                if (g.Name == "table2"){num++;}                
             }
-            if (num == 2) return true;
+            if (num == 2) {                
+                return true; }
             else return false;
         }
 

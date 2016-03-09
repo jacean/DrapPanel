@@ -34,7 +34,7 @@ namespace DrapPanel
             try
             {
                 new sqlConn().sqlconn(textBox1.Text.Trim(), "SQL");
-                function.sqlcon = textBox1.Text.Trim();
+                function.sqlconDBR = textBox1.Text.Trim();
                 isOK = true;
                 this.Dispose();
                 this.Close();

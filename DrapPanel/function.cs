@@ -10,25 +10,28 @@ namespace DrapPanel
     class function
     {
        
-        public static string  currentTables="";
+    
         static string table1;
         static string table2;
         static string index1;
         static string index2;
         static string direct;
         //static string sqlcon="Data Source=ELAB-36\\SQLEXPRESS;Initial Catalog=asj_DBR;Integrated Security=True;Pooling=False";
-        public static string sqlcon = "";
+        public static string sqlconDBR = "";
 
-        public static void createTable(string table1, string table2)
+        public static string createName(string table1,string table2)
         {
-            sqlConn con = new sqlConn();
-            con.sqlconn(sqlcon,"SQL");
-            
             string[] t = new string[] { table1, table2 };
             Array.Sort(t);
-            string name = string.Join("_", t);
-            name = "DBR_" + name;
-            currentTables = name;
+            string name = string.Join("__", t);
+            name = "DB_" + name;           
+            return name;
+        }
+        public static void createTable(string name)
+        {
+            sqlConn con = new sqlConn();
+            con.sqlconn(sqlconDBR,"SQL"); 
+           
             string l = "";
             string sql = "";
             using (StreamReader sr = new StreamReader("sqlcontent.sql", Encoding.UTF8))
@@ -55,11 +58,11 @@ namespace DrapPanel
             con.Close();
 
         }
-        public static void saveLine(Line l)
+        public static void saveLine(Line l,string currentTables)
         {
             int i=0;
             string olddirect = "";
-            if ((i=checkrepeat(l))>-1)//checkrepeat已经执行了sort
+            if ((i=checkrepeat(l,currentTables))>-1)//checkrepeat已经执行了sort
             {//重了的话 ,判断指向
                 olddirect = i.ToString();
                 if (l.srcg.Text == table1) { direct = "0"; }
@@ -67,14 +70,14 @@ namespace DrapPanel
                 if (direct == olddirect) { return; }
                 else {
                     direct = "2";
-                    updatedirect(direct);
+                    updatedirect(direct,currentTables);
                 }
                 
             }
             else
             {
                 sqlConn con = new sqlConn();
-                con.sqlconn(sqlcon, "SQL");
+                con.sqlconn(sqlconDBR, "SQL");
                 string sql = "";
                 sort(l);
                 if (l.srcg.Text == table1) { direct = "0"; }
@@ -86,10 +89,10 @@ namespace DrapPanel
                 con.Close();
             }
         }
-        public static void updateTag(Line l)
+        public static void updateTag(Line l, string currentTables)
         {
             sqlConn con = new sqlConn();
-            con.sqlconn(sqlcon, "SQL");
+            con.sqlconn(sqlconDBR, "SQL");
             string sql = "";
             sort(l);
             // string p = l.dsX_src.ToString() + "\b" + l.dsX_des.ToString() + "\b" + l.srcg_itemIndex.ToString() + "\b" + l.desg_itemIndex.ToString() + "\b" + l.srcg.Name.ToString() + "\b" + l.desg.Name.ToString();
@@ -98,10 +101,10 @@ namespace DrapPanel
             con.executeUpdate(sql);
             con.Close();
         }
-        public static void updatedirect(string d)
+        public static void updatedirect(string d, string currentTables)
         {
             sqlConn con = new sqlConn();
-            con.sqlconn(sqlcon, "SQL");
+            con.sqlconn(sqlconDBR, "SQL");
             string sql = "";            
             // string p = l.dsX_src.ToString() + "\b" + l.dsX_des.ToString() + "\b" + l.srcg_itemIndex.ToString() + "\b" + l.desg_itemIndex.ToString() + "\b" + l.srcg.Name.ToString() + "\b" + l.desg.Name.ToString();
             sql = "update " + currentTables + " set direct='" + d + "' where table1='" + table1 + "'and field1='" + index1 + "' and table2='" + table2 + "' and field2='" + index2 + "'";
@@ -109,10 +112,10 @@ namespace DrapPanel
             con.executeUpdate(sql);
             con.Close();
         }
-        public static void deleteLine(Line l)
+        public static void deleteLine(Line l, string currentTables)
         {
             sqlConn con = new sqlConn();
-            con.sqlconn(sqlcon, "SQL");
+            con.sqlconn(sqlconDBR, "SQL");
             string sql = "";
             sort(l);
             // string p = l.dsX_src.ToString() + "\b" + l.dsX_des.ToString() + "\b" + l.srcg_itemIndex.ToString() + "\b" + l.desg_itemIndex.ToString() + "\b" + l.srcg.Name.ToString() + "\b" + l.desg.Name.ToString();
@@ -123,10 +126,10 @@ namespace DrapPanel
             con.Close();
         }
 
-        public static List<string> readLine()
+        public static List<string> readLine(string currentTables)
         {
             sqlConn con = new sqlConn();
-            con.sqlconn(sqlcon, "SQL");
+            con.sqlconn(sqlconDBR, "SQL");
             string sql = "";
             sql = "select * from " + currentTables;
             DataTable dt=con.getVector(sql);
@@ -170,10 +173,10 @@ namespace DrapPanel
         /// </summary>
         /// <param name="l"></param>
         /// <returns></returns>
-        public static int checkrepeat(Line l)
+        public static int checkrepeat(Line l, string currentTables)
         {
             sqlConn con = new sqlConn();
-            con.sqlconn(sqlcon, "SQL");
+            con.sqlconn(sqlconDBR, "SQL");
             string sql = "";
             sort(l);
             // string p = l.dsX_src.ToString() + "\b" + l.dsX_des.ToString() + "\b" + l.srcg_itemIndex.ToString() + "\b" + l.desg_itemIndex.ToString() + "\b" + l.srcg.Name.ToString() + "\b" + l.desg.Name.ToString();

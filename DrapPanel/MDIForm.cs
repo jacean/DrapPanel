@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.IO;
 
 namespace DrapPanel
 {
@@ -14,12 +15,11 @@ namespace DrapPanel
         public MDIForm()
         {
             InitializeComponent();
+
+           
         }
         
-        private void 新建ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            
-        }
+      
         public void addTabPage()
         {
             MainForm mf = new MainForm();
@@ -43,13 +43,60 @@ namespace DrapPanel
             this.MainTabControl.DrawItem += new DrawItemEventHandler(this.MainTabControl_DrawItem);
             this.MainTabControl.MouseDown += new System.Windows.Forms.MouseEventHandler(this.MainTabControl_MouseDown);
             this.MainTabControl.Appearance = TabAppearance.Buttons;
+            this.MainTabControl.ItemSize = new Size(150,20);
+            bool hasSetting = false;
+            if (File.Exists(Application.StartupPath + "\\setting.ini"))
+            {
+                using (StreamReader sr = new StreamReader(Application.StartupPath + "\\setting.ini", Encoding.UTF8))
+                {
+                    string l = "";
+                    if ((l = sr.ReadLine()) != null)
+                    {//这是连接表的位置，如果第一次没有就提示选择
+                        hasSetting = true;
+                        function.sqlconDBR = l;
 
-            MainForm mf = new MainForm();
-            mf.MdiParent = this;
-            mf.FormBorderStyle = FormBorderStyle.None;
-            mf.Dock = DockStyle.Fill;
-            mf.Show();
-            MainTabControl.TabPages[0].Controls.Add(mf);
+                        while ((l = sr.ReadLine()) != null)
+                        {
+                            MainForm mf = new MainForm(l.Split('\b')[0], l.Split('\b')[1]);
+                            mf.MdiParent = this;
+                            mf.FormBorderStyle = FormBorderStyle.None;
+                            mf.Dock = DockStyle.Fill;
+                            mf.Show();
+
+                            MainTabControl.TabPages[MainTabControl.TabPages.Count - 1].Controls.Add(mf);
+                            this.MainTabControl.SelectedTab.Text = mf.Text;
+
+                            TabPage newTab = new TabPage();
+                            newTab.Text = "  New ";
+                            MainTabControl.TabPages.Add(newTab);
+                        }
+                    }             
+                   
+                }               
+            }
+            else
+            {
+                Input input = new Input();
+                input.ShowDialog();
+                using (StreamWriter sw = new StreamWriter(Application.StartupPath + "\\setting.ini", false, Encoding.UTF8))
+                {
+                    sw.WriteLine(function.sqlconDBR);
+                }
+            }
+            if (!hasSetting)
+            {
+                Input input = new Input();
+                input.ShowDialog();
+                using (StreamWriter sw = new StreamWriter(Application.StartupPath + "\\setting.ini", false, Encoding.UTF8))
+                {
+                    sw.WriteLine(function.sqlconDBR);
+                }
+            }
+            if (MainTabControl.TabPages.Count < 2)
+            {
+                addTabPage();
+            }
+
             
         }
         const int CLOSE_SIZE = 15;
@@ -65,11 +112,13 @@ namespace DrapPanel
                 if (e.Index == this.MainTabControl.TabPages.Count - 1)
                 {
                     e.Graphics.DrawString(this.MainTabControl.TabPages[e.Index].Text, this.Font, SystemBrushes.ControlText, myTabRect.X, myTabRect.Y+5);
+                    //this.MainTabControl.TabPages[e.Index].Size = new Size(50, 20);
                     return;
                 }
-                //先添加TabPage属性   
-                e.Graphics.DrawString(this.MainTabControl.TabPages[e.Index].Text, this.Font, SystemBrushes.ControlText, myTabRect.X + 2, myTabRect.Y + 5);
- 
+                //先添加TabPage属性   ,设置pagetext
+                string pageText = this.MainTabControl.TabPages[e.Index].Text;
+                e.Graphics.DrawString(pageText, this.Font, SystemBrushes.ControlText, myTabRect.X + 2, myTabRect.Y + 5);              
+                this.MainTabControl.TabPages[e.Index].ToolTipText = pageText;
                 //再画一个矩形框
                 using (Pen p = new Pen(Color.White))
                 {
@@ -145,6 +194,19 @@ namespace DrapPanel
             if (MainTabControl.SelectedIndex == MainTabControl.TabPages.Count-1)
             {
                 addTabPage();
+            }
+        }
+
+        private void MDIForm_FormClosed(object sender, FormClosedEventArgs e)
+        {   
+            using (StreamWriter sw = new StreamWriter(Application.StartupPath + "\\setting.ini",false, Encoding.UTF8))
+            {
+                sw.WriteLine(function.sqlconDBR);
+                for (int i = 0; i < this.MainTabControl.TabPages.Count-1; i++)
+                {
+                    MainForm mf = (MainForm)this.MainTabControl.TabPages[i].Controls[0];
+                    sw.WriteLine(mf.Text+"\b"+mf.sqltxt);
+                }
             }
         }    
 
