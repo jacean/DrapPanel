@@ -39,6 +39,8 @@
             this.label1 = new System.Windows.Forms.Label();
             this.panel4 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.button1 = new System.Windows.Forms.Button();
+            this.historyCb = new System.Windows.Forms.ComboBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.button5 = new System.Windows.Forms.Button();
             this.label2 = new System.Windows.Forms.Label();
@@ -47,7 +49,6 @@
             this.cb1 = new System.Windows.Forms.ComboBox();
             this.cb2 = new System.Windows.Forms.ComboBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.historyCb = new System.Windows.Forms.ComboBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -154,6 +155,7 @@
             // panel2
             // 
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.panel2.Controls.Add(this.button1);
             this.panel2.Controls.Add(this.historyCb);
             this.panel2.Controls.Add(this.pictureBox1);
             this.panel2.Controls.Add(this.button5);
@@ -169,6 +171,27 @@
             this.panel2.Size = new System.Drawing.Size(174, 580);
             this.panel2.TabIndex = 2;
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(9, 271);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 14;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // historyCb
+            // 
+            this.historyCb.FormattingEnabled = true;
+            this.historyCb.Location = new System.Drawing.Point(5, 244);
+            this.historyCb.Name = "historyCb";
+            this.historyCb.Size = new System.Drawing.Size(162, 20);
+            this.historyCb.TabIndex = 13;
+            this.historyCb.SelectedIndexChanged += new System.EventHandler(this.historyCb_SelectedIndexChanged);
+            this.historyCb.SelectedValueChanged += new System.EventHandler(this.historyCb_SelectedValueChanged);
+            this.historyCb.DropDownClosed += new System.EventHandler(this.historyCb_DropDownClosed);
+            // 
             // pictureBox1
             // 
             this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Top;
@@ -182,7 +205,7 @@
             // 
             // button5
             // 
-            this.button5.Location = new System.Drawing.Point(92, 532);
+            this.button5.Location = new System.Drawing.Point(116, 270);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(51, 23);
             this.button5.TabIndex = 10;
@@ -206,7 +229,7 @@
             this.dataGridView1.AllowUserToOrderColumns = true;
             this.dataGridView1.BackgroundColor = System.Drawing.SystemColors.Control;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView1.Location = new System.Drawing.Point(5, 285);
+            this.dataGridView1.Location = new System.Drawing.Point(5, 308);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowHeadersVisible = false;
             this.dataGridView1.RowTemplate.Height = 23;
@@ -256,15 +279,6 @@
             this.tableLayoutPanel1.Size = new System.Drawing.Size(898, 586);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
-            // historyCb
-            // 
-            this.historyCb.FormattingEnabled = true;
-            this.historyCb.Location = new System.Drawing.Point(5, 244);
-            this.historyCb.Name = "historyCb";
-            this.historyCb.Size = new System.Drawing.Size(162, 20);
-            this.historyCb.TabIndex = 13;
-            this.historyCb.SelectedIndexChanged += new System.EventHandler(this.historyCb_SelectedIndexChanged);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -308,5 +322,6 @@
         private System.Windows.Forms.TextBox tagTxt;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.ComboBox historyCb;
+        private System.Windows.Forms.Button button1;
     }
 }

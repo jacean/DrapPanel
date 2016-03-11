@@ -33,3 +33,14 @@ E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Input.resources
 \\VBOXSVR\asj\Part-time\DrapPanel\DrapPanel\obj\Debug\DrapPanel.temp.resources
 \\VBOXSVR\asj\Part-time\DrapPanel\DrapPanel\obj\Debug\DrapPanel.csproj.GenerateResource.Cache
 E:\program\DrapPanel\DrapPanel\obj\Debug\DrapPanel.MDIForm.resources
+\\VBOXSVR\program\ASJ\Part-time\DrapPanel\DrapPanel\obj\Debug\DrapPanel.exe
+\\VBOXSVR\program\ASJ\Part-time\DrapPanel\DrapPanel\obj\Debug\DrapPanel.pdb
+\\VBOXSVR\program\ASJ\Part-time\DrapPanel\DrapPanel\bin\Debug\DrapPanel.exe
+\\VBOXSVR\program\ASJ\Part-time\DrapPanel\DrapPanel\bin\Debug\DrapPanel.pdb
+\\VBOXSVR\program\ASJ\Part-time\DrapPanel\DrapPanel\obj\Debug\ResolveAssemblyReference.cache
+\\VBOXSVR\program\ASJ\Part-time\DrapPanel\DrapPanel\obj\Debug\DrapPanel.MDIForm.resources
+\\VBOXSVR\program\ASJ\Part-time\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Input.resources
+\\VBOXSVR\program\ASJ\Part-time\DrapPanel\DrapPanel\obj\Debug\DrapPanel.MainForm.resources
+\\VBOXSVR\program\ASJ\Part-time\DrapPanel\DrapPanel\obj\Debug\DrapPanel.Properties.Resources.resources
+\\VBOXSVR\program\ASJ\Part-time\DrapPanel\DrapPanel\obj\Debug\DrapPanel.temp.resources
+\\VBOXSVR\program\ASJ\Part-time\DrapPanel\DrapPanel\obj\Debug\DrapPanel.csproj.GenerateResource.Cache

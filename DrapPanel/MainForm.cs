@@ -20,7 +20,7 @@ namespace DrapPanel
         {
             InitializeComponent();
             this.sqltxt = sqltxt;
-            textBox1.Text = sqltxt;
+           
             this.Text = name;
             tableName = name;
            
@@ -71,7 +71,7 @@ namespace DrapPanel
            
             if (sqltxt != "")
             {
-              
+                textBox1.Text = sqltxt;
                 button5_Click(null, null);
 
                 for (int i = 0; i < cb1.Items.Count; i++)
@@ -86,29 +86,13 @@ namespace DrapPanel
               
             }
             else{
-                if (File.Exists(Application.StartupPath + "//history.txt"))
+                readHistoryByCookieBindCb();
+                if (historyCb.Items.Count>0)
                 {
-                    DataTable dt = new DataTable();
-                    using (StreamReader sr = new StreamReader(Application.StartupPath + "//history.txt", Encoding.UTF8))
-                    {
-                        dt.Columns.Add("showValue");
-                        dt.Columns.Add("trueValue");
-                        string l = "";
-                        while ((l = sr.ReadLine()) != null)
-                        {
-                            DataRow dr = dt.NewRow();
-                            dr["showValue"] = l.Split('\b')[0];
-                            dr["trueValue"] = l.Split('\b')[1];
-                            dt.Rows.Add(dr);
-                        }
-                    }
-                    historyCb.DataSource = dt;
-                    historyCb.DisplayMember = "showValue";              
-                    historyCb.ValueMember = "trueValue";
-                    historyCb.AutoCompleteSource = AutoCompleteSource.ListItems;
-                    historyCb.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-                    //historyCb.SelectedIndex = historyCb.Items.Count - 1;
+                    historyCb.SelectedIndex = historyCb.Items.Count - 1;
+                    textBox1.Text = historyCb.SelectedValue.ToString();
                 }
+               
             }
             updateListBox();
             updateLines();
@@ -1300,62 +1284,18 @@ namespace DrapPanel
 
                 return;
             }
-
-            DataTable dt = new DataTable();
-         #region update history
-            string dbName = sqlconn.GetSingleResult("select db_name();");
-            if (File.Exists(Application.StartupPath + "//history.txt"))
-            {               
-                using (StreamReader sr = new StreamReader(Application.StartupPath + "//history.txt", Encoding.UTF8))
-                {
-                    dt.Columns.Add("showValue");
-                    dt.Columns.Add("trueValue");
-                    string l = "";
-                    while ((l = sr.ReadLine()) != null)
-                    {
-                        DataRow dr = dt.NewRow();
-                        dr["showValue"] = l.Split('\b')[0];
-                        dr["trueValue"] = l.Split('\b')[1];
-                        dt.Rows.Add(dr);
-                    }
-                }
-                var results = from row in dt.AsEnumerable()
-                              where row.Field<string>("showValue") == dbName
-                              select row;
-                if (results.Count() > 0)
-                {
-                    foreach (DataRow r in results)
-                    {
-                        r["trueValue"] = textBox1.Text;
-                    }
-                    using (StreamWriter sw = new StreamWriter(Application.StartupPath + "//history.txt", false, Encoding.UTF8))
-                    {
-                        foreach (DataRow r in dt.Rows)
-                        {
-                            sw.WriteLine(r["showValue"] + "\b" + r["trueValue"]);
-                        }
-
-                    }
-                }
-                else
-                {
-                    using (StreamWriter sw = new StreamWriter(Application.StartupPath + "//history.txt", true, Encoding.UTF8))
-                    {
-                        sw.WriteLine(dbName + "\b" + textBox1.Text);
-                    }
-                }
-            }
-            else
-            {
-                using (StreamWriter sw = new StreamWriter(Application.StartupPath + "//history.txt", true, Encoding.UTF8))
-                {
-                    sw.WriteLine(dbName + "\b" + textBox1.Text);
-                }
-            }
-         #endregion
-            
+            updateTableCb();
+            writeHistoryByNewConn();
+            readHistoryByCookieBindCb();
+            updateTextByHistoryCbSelected();
+ 
+          
+        }
+     
+        public void updateTableCb()
+        {
            
-
+             DataTable dt = new DataTable();
             dt = sqlconn.getVector("SELECT Name,crdate FROM SysObjects Where XType='U' ORDER BY Name");
             if (dt != null)
             {
@@ -1373,10 +1313,23 @@ namespace DrapPanel
                 loadEnd = true;
                 cb1.SelectedIndex = -1;
                 cb2.SelectedIndex = -1;
-                if(dt.Rows.Count>0)cb1.SelectedIndex = 0;
+               // if(dt.Rows.Count>0)cb1.SelectedIndex = 0;
+                
+            }
+            else
+            {
+                cb1.SelectedText = "error";
+                cb2.SelectedText = "error";
+            }
+          
+        }
+        public void clearPanelGrp()
+        {
+            foreach (GroupBox g in panel4.Controls.OfType<GroupBox>())
+            {
+                panel4.Controls.Remove(g);
             }
         }
-
         private void cb_SelectedIndexChanged(object sender, EventArgs e)
         {
             ComboBox cb = (ComboBox)sender;
@@ -1466,12 +1419,137 @@ namespace DrapPanel
                 return true; }
             else return false;
         }
-
+        public bool isLoadHistory=false;
         private void historyCb_SelectedIndexChanged(object sender, EventArgs e)
         {
-            textBox1.Text = historyCb.SelectedValue.ToString();
+           
         }
 
+        public void readHistoryByCookieBindCb()
+        {
+            isLoadHistory = true;
+           
+            if (File.Exists(Application.StartupPath + "//history.txt"))
+            {
+                DataTable dt = new DataTable();
+                using (StreamReader sr = new StreamReader(Application.StartupPath + "//history.txt", Encoding.UTF8))
+                {
+                    dt.Columns.Add("showValue");
+                    dt.Columns.Add("trueValue");
+                    string l = "";
+                    while ((l = sr.ReadLine()) != null)
+                    {
+                        DataRow dr = dt.NewRow();
+                        dr["showValue"] = l.Split('\b')[0];
+                        dr["trueValue"] = l.Split('\b')[1];
+                        dt.Rows.Add(dr);
+                    }
+                }
+                historyCb.DataSource = dt;
+                historyCb.DisplayMember = "showValue";
+                historyCb.ValueMember = "trueValue";
+                historyCb.AutoCompleteSource = AutoCompleteSource.ListItems;
+                historyCb.AutoCompleteMode = AutoCompleteMode.SuggestAppend;               
+             
+            }             
+        }
+        public void updateTextByHistoryCbSelected()
+        {
+            isLoadHistory = false;
+            string current = textBox1.Text;
+            DataTable dt =(DataTable) historyCb.DataSource;
+            var results = from row in dt.AsEnumerable()
+                          where row.Field<string>("trueValue") ==current
+                          select row;
+            if (results.Count() > 0)
+            {
+                foreach (DataRow r in results)
+                {
+                    // r["trueValue"] = textBox1.Text;
+                    historyCb.SelectedIndex = dt.Rows.IndexOf(r);
+                  
+                    textBox1.Text = historyCb.SelectedValue.ToString();
+                    historyCb.SelectedText = r["showValue"].ToString();
+                }
+
+            }
+        }
+        public void writeHistoryByNewConn()
+        {
+         
+            DataTable dt = new DataTable();
+            string dbName = sqlconn.GetSingleResult("select db_name();");
+            if (File.Exists(Application.StartupPath + "//history.txt"))
+            {
+                using (StreamReader sr = new StreamReader(Application.StartupPath + "//history.txt", Encoding.UTF8))
+                {
+                    dt.Columns.Add("showValue");
+                    dt.Columns.Add("trueValue");
+                    string l = "";
+                    while ((l = sr.ReadLine()) != null)
+                    {
+                        DataRow dr = dt.NewRow();
+                        dr["showValue"] = l.Split('\b')[0];
+                        dr["trueValue"] = l.Split('\b')[1];
+                        dt.Rows.Add(dr);
+                    }
+                }
+                var results = from row in dt.AsEnumerable()
+                              where row.Field<string>("showValue") == dbName
+                              select row;
+                if (results.Count() > 0)
+                {
+                    foreach (DataRow r in results)
+                    {
+                        r["trueValue"] = textBox1.Text;
+                    }
+                  
+                }
+                else
+                {
+                    DataRow dr =dt.NewRow();
+                    dr["showValue"] = dbName;
+                    dr["trueValue"] = textBox1.Text;
+                    dt.Rows.Add(dr);
+                }
+                using (StreamWriter sw = new StreamWriter(Application.StartupPath + "//history.txt", false, Encoding.UTF8))
+                {
+                    foreach (DataRow r in dt.Rows)
+                    {
+                        sw.WriteLine(r["showValue"] + "\b" + r["trueValue"]);
+                    }
+
+                }
+            }
+            else
+            {
+                using (StreamWriter sw = new StreamWriter(Application.StartupPath + "//history.txt", true, Encoding.UTF8))
+                {
+                    sw.WriteLine(dbName + "\b" + textBox1.Text);
+                }
+            }
+
+        }
+        private void button1_Click(object sender, EventArgs e)
+        {
+            readHistoryByCookieBindCb();
+            updateTextByHistoryCbSelected();
+        }
+
+        private void historyCb_DropDownClosed(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void historyCb_SelectedValueChanged(object sender, EventArgs e)
+        {
+            if (!isLoadHistory)
+            {
+                string x = historyCb.GetItemText(historyCb.SelectedItem);
+                textBox1.Text = historyCb.SelectedValue.ToString();
+
+            }
+        }
         
       
     
